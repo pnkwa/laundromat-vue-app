@@ -1,14 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import { useCountdown } from '@vueuse/core'
-import type { TimeConfig } from '@/types/dateFormat'
-
-const timeConfigToSeconds = (t: TimeConfig) => t.hours * 3600 + t.minutes * 60 + t.seconds
-const secondsToTimeConfig = (total: number): TimeConfig => ({
-  hours: Math.floor(total / 3600),
-  minutes: Math.floor((total % 3600) / 60),
-  seconds: total % 60,
-})
+import { secondsToTimeConfig, timeConfigToSeconds } from '@/helper/time'
+import type { TimeConfig } from '@/types/date-format'
 
 export const useCountdownStore = defineStore('countdown', () => {
   const initial = ref(0)
@@ -23,13 +17,9 @@ export const useCountdownStore = defineStore('countdown', () => {
     if (time === 0 && !isActive.value) onComplete.value?.()
   })
 
-  const begin = (
-    config: TimeConfig,
-    options?: { onComplete?: () => void; onTick?: (time: TimeConfig) => void },
-  ) => {
+  const begin = (config: TimeConfig, options?: { onComplete?: () => void }) => {
     initial.value = timeConfigToSeconds(config)
     onComplete.value = options?.onComplete
-    onTick.value = options?.onTick
     start()
   }
 

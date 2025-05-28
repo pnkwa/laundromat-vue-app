@@ -1,29 +1,29 @@
 <script setup lang="ts">
 import CountdownLabel from '@/components/base/CountdownLabel.vue'
-import { useCountdownStore } from '@/stores/countdownStore'
-import { laundromatMode, type WashingModeKey } from '@/types/washingMachineTypes'
+import { useCountdownWashing } from '@/composible/useCountdownWashing'
+import { laundromatMode, type WashingModeKey } from '@/types/washing-machine-types'
 import { DotLottieVue, type DotLottieVueInstance } from '@lottiefiles/dotlottie-vue'
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, useTemplateRef } from 'vue'
 
-const countdown = useCountdownStore()
-const player = ref<DotLottieVueInstance | null>(null)
+const countdown = useCountdownWashing({
+  onComplete: () => {
+    player.value?.getDotLottieInstance()?.stop()
+  },
+})
+const player = useTemplateRef<DotLottieVueInstance>('player')
 const selectedMode = ref<WashingModeKey>('NORMAL')
 
 const startButtonLabel = computed(() => {
-  return countdown.remaining > 0 && !countdown.isRunning ? 'Resume' : 'Start'
+  return countdown.remaining.value > 0 && !countdown.isRunning ? 'Resume' : 'Start'
 })
 
 const handleStartOrResume = () => {
-  if (countdown.remaining > 0 && !countdown.isRunning) {
+  if (countdown.remaining.value > 0 && !countdown.isRunning) {
     countdown.resumeCountdown()
     player.value?.getDotLottieInstance()?.play()
   } else {
     const config = laundromatMode[selectedMode.value].timeCount
-    countdown.begin(config, {
-      onComplete: () => {
-        player.value?.getDotLottieInstance()?.stop()
-      },
-    })
+    countdown.begin(config)
     player.value?.getDotLottieInstance()?.play()
   }
 }
@@ -51,18 +51,24 @@ onMounted(() => {
       style="height: 500px; width: 500px"
     />
 
-    <CountdownLabel />
+    <CountdownLabel
+      :hours="countdown.timeLeft.value.hours"
+      :minutes="countdown.timeLeft.value.minutes"
+      :seconds="countdown.timeLeft.value.seconds"
+    />
 
     <div class="btn-group">
-      <button @click="handleStartOrResume" :disabled="countdown.isRunning">
+      <button @click="handleStartOrResume" :disabled="countdown.isRunning.value">
         {{ startButtonLabel }}
       </button>
-      <button @click="pause" :disabled="!countdown.isRunning">Pause</button>
+      <button @click="pause" :disabled="!countdown.isRunning.value">Pause</button>
     </div>
 
     <div class="mode-select flex gap-4 mt-4">
-      <button @click="selectedMode = 'NORMAL'" :disabled="countdown.isRunning">Normal</button>
-      <button @click="selectedMode = 'HEAVY_DUTY'" :disabled="countdown.isRunning">Heavy</button>
+      <button @click="selectedMode = 'NORMAL'" :disabled="countdown.isRunning.value">Normal</button>
+      <button @click="selectedMode = 'HEAVY_DUTY'" :disabled="countdown.isRunning.value">
+        Heavy
+      </button>
     </div>
   </div>
 </template>

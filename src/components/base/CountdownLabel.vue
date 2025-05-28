@@ -1,29 +1,24 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useCountdownStore } from '@/stores/countdownStore'
+interface PropCountdownLabel {
+  hours: number
+  minutes: number
+  seconds: number
+}
 
-const countdown = useCountdownStore()
-
-const timeLeft = computed(() => {
-  const total = countdown.remaining
-  const hours = Math.floor(total / 3600)
-  const minutes = Math.floor((total % 3600) / 60)
-  const seconds = total % 60
-  return { hours, minutes, seconds }
-})
+const props = defineProps<PropCountdownLabel>()
 </script>
 
 <template>
   <div class="flex flex-col gap-4 items-center text-lg font-mono">
     <div class="flex gap-4">
       <div>
-        <span class="countdown text-4xl">{{ timeLeft.hours }}</span> hrs
+        <span class="countdown text-4xl">{{ props.hours }}</span> hrs
       </div>
       <div>
-        <span class="countdown text-4xl">{{ timeLeft.minutes }}</span> min
+        <span class="countdown text-4xl">{{ props.minutes }}</span> min
       </div>
       <div>
-        <span class="countdown text-4xl">{{ timeLeft.seconds }}</span> sec
+        <span class="countdown text-4xl">{{ props.seconds }}</span> sec
       </div>
     </div>
   </div>
