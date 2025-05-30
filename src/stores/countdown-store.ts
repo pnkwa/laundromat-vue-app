@@ -5,8 +5,8 @@ import { secondsToTimeConfig, timeConfigToSeconds } from '@/helper/time'
 import type { TimeConfig } from '@/types/date-format'
 
 export const useCountdownStore = defineStore('countdown', () => {
-  const initial = ref(0)
-  const { remaining, isActive, start, pause, resume, reset } = useCountdown(initial)
+  const initialSecTime = ref(0)
+  const { remaining, isActive, start, pause, resume, reset } = useCountdown(initialSecTime)
   const onComplete = ref<() => void>()
   const onTick = ref<(time: TimeConfig) => void>()
 
@@ -18,7 +18,7 @@ export const useCountdownStore = defineStore('countdown', () => {
   })
 
   const begin = (config: TimeConfig, options?: { onComplete?: () => void }) => {
-    initial.value = timeConfigToSeconds(config)
+    initialSecTime.value = timeConfigToSeconds(config)
     onComplete.value = options?.onComplete
     start()
   }

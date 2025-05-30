@@ -1,9 +1,14 @@
 <script setup lang="ts">
+import BaseModal from '@/components/base/BaseModal.vue'
 import CountdownLabel from '@/components/base/CountdownLabel.vue'
 import { useCountdownWashing } from '@/composible/useCountdownWashing'
 import { laundromatMode, type WashingModeKey } from '@/types/washing-machine-types'
 import { DotLottieVue, type DotLottieVueInstance } from '@lottiefiles/dotlottie-vue'
-import { ref, computed, onMounted, useTemplateRef } from 'vue'
+import { ref, computed, useTemplateRef } from 'vue'
+import { FwbAlert } from 'flowbite-vue'
+import CoinMachine from '@/components/CoinMachine.vue'
+
+const showModal = ref(false)
 
 const countdown = useCountdownWashing({
   onComplete: () => {
@@ -16,6 +21,8 @@ const selectedMode = ref<WashingModeKey>('NORMAL')
 const startButtonLabel = computed(() => {
   return countdown.remaining.value > 0 && !countdown.isRunning ? 'Resume' : 'Start'
 })
+
+const modePrice = computed(() => laundromatMode[selectedMode.value].price)
 
 const handleStartOrResume = () => {
   if (countdown.remaining.value > 0 && !countdown.isRunning) {
@@ -32,18 +39,13 @@ const pause = () => {
   countdown.pauseCountdown()
   player.value?.getDotLottieInstance()?.pause()
 }
-
-onMounted(() => {
-  const dotLottie = player.value?.getDotLottieInstance()
-  dotLottie?.addEventListener('play', () => console.log('Lottie playing'))
-  dotLottie?.addEventListener('pause', () => console.log('Lottie paused'))
-  dotLottie?.addEventListener('stop', () => console.log('Lottie stopped'))
-  dotLottie?.addEventListener('complete', () => console.log('Lottie complete'))
-})
 </script>
 
 <template>
   <div class="about">
+    <FwbAlert type="info">
+      Success! You can now use Flowbite Vue in your Vue application 🎉
+    </FwbAlert>
     <DotLottieVue
       ref="player"
       src="https://lottie.host/204dcf22-0e95-445d-adc8-9473c7457df9/qFuHLw1SAD.lottie"
@@ -70,6 +72,19 @@ onMounted(() => {
         Heavy
       </button>
     </div>
+    <div class="mt-8">
+      <button
+        @click="showModal = true"
+        class="block text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+        type="button"
+      >
+        Your coin:
+      </button>
+    </div>
+
+    <BaseModal v-model:isOpen="showModal" header="Confirm" leftButton="No" rightButton="Yes">
+      <CoinMachine :price="modePrice" />
+    </BaseModal>
   </div>
 </template>
 
