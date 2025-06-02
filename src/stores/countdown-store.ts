@@ -4,6 +4,7 @@ import { useCountdown } from '@vueuse/core'
 import { secondsToTimeConfig, timeConfigToSeconds } from '@/helper/time'
 import type { TimeConfig } from '@/types/date-format'
 
+// Faris comment: move to composable useCountdown
 export const useCountdownStore = defineStore('countdown', () => {
   const initialSecTime = ref(0)
   const { remaining, isActive, start, pause, resume, reset } = useCountdown(initialSecTime)

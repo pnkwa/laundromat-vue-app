@@ -5,6 +5,7 @@ import { defaultCoinWallet } from '@/types/coin-types'
 export const useMyCoinWallet = () => {
   const myCoin = useLocalStorage<CoinWallet>('my-coin', defaultCoinWallet)
 
+  // Faris comment: use computed
   const valueToCoinKeyMap = Object.entries(coin).reduce(
     (map, [key, value]) => {
       map[value as number] = key as CoinKey
@@ -13,6 +14,7 @@ export const useMyCoinWallet = () => {
     {} as Record<number, CoinKey>,
   )
 
+  // Faris comment: change naming function or parameter type
   const addCoinsWallet = (coinList: number[]) => {
     for (const value of coinList) {
       const coinKey = valueToCoinKeyMap[value]
@@ -22,6 +24,7 @@ export const useMyCoinWallet = () => {
     }
   }
 
+  // Faris comment: change naming function or parameter type
   const useCoinsWallet = (coinList: number[]) => {
     for (const value of coinList) {
       const coinKey = valueToCoinKeyMap[value]

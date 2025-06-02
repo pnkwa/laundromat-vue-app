@@ -11,11 +11,12 @@ const props = defineProps<{
 const coinMachineStore = useCoinMachineStore()
 const { myCoin, addCoinsWallet, useCoinsWallet } = useMyCoinWallet()
 
+// Faris comment: move to store
 const myCoinTotal = computed(() =>
-  Object.entries(myCoin.value).reduce((sum, [key, count]) => sum + coin[key as CoinKey] * count, 0),
+  Object.entries(myCoin.value).reduce((sum, [key, count]) => sum + coin[key as never] * count, 0),
 )
 
-const myWalletDisplay = computed(() => myCoin.value)
+// const myWalletDisplay = computed(() => myCoin.value)
 
 watch(
   () => props.price,
@@ -26,13 +27,18 @@ watch(
         Array(count).fill(coin[key as CoinKey]),
       ),
     ]
+    // console.log('available >>', available)
+
     coinMachineStore.startTransaction(newPrice, available)
   },
   { immediate: true },
 )
 
+// Faris comment: parameter type to name coin constant
 const handleInsert = (value: number) => {
   const coinEntry = Object.entries(coin).find(([, v]) => v === value)
+  console.log('coinEntry >>', coinEntry)
+
   const coinKey = coinEntry?.[0] as CoinKey | undefined
   if (coinKey && myCoin.value[coinKey] > 0 && coinMachineStore.canInsert) {
     coinMachineStore.insertCoin(value)
@@ -70,7 +76,7 @@ onMounted(() => {
         <p class="font-semibold text-blue-500">My Wallet:</p>
         <ul class="ml-4 flex gap-3">
           <li
-            v-for="(count, name) in myWalletDisplay"
+            v-for="(count, name) in myCoin"
             :key="name"
             class="bg-white/80 rounded-xl px-3 py-1 shadow font-cute text-sm flex items-center gap-1"
           >
@@ -150,6 +156,8 @@ onMounted(() => {
 </template>
 
 <style scoped>
+/* Faris comment: can move to global styles, move to local font folder src/assets/fonts */
+/* tailwind config font */
 @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@700&display=swap');
 
 .font-cute {

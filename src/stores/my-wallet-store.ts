@@ -5,6 +5,7 @@ import { defineStore } from 'pinia'
 export const useMyCoinStore = defineStore('myCoin', () => {
   const wallet = useLocalStorage<CoinWallet>('my-coin', defaultCoinWallet)
 
+  // Faris comment: totalCoins is a function that calculates the total number of coins in the wallet computed
   const totalCoins = () => Object.values(wallet.value).reduce((sum, count) => sum + count, 0)
 
   const myWallet = () =>
@@ -22,6 +23,7 @@ export const useMyCoinStore = defineStore('myCoin', () => {
   }
 
   function resetWallet() {
+    // Faris comment: reset the wallet to default values use ref.value
     Object.assign(wallet.value, defaultCoinWallet)
   }
 

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, toRaw } from 'vue'
 import { coinMachineChange } from '@/helper/coin-machine-change'
 
 export const useCoinMachineStore = defineStore('coin', () => {
@@ -30,7 +30,18 @@ export const useCoinMachineStore = defineStore('coin', () => {
     if (total.value < price.value) return false
     const change = total.value - price.value
     totalChange.value = change
-    const changeList = coinMachineChange(availableCoins.value, change)
+    console.log('availableCoins.value >>', availableCoins.value)
+    console.log('totalChange.value >>', totalChange.value)
+    console.log('insertedCoins.value >>', insertedCoins.value)
+    // {
+    //   10: 0,
+    //   5: 0,
+    //   1: 0
+    // }
+
+    const changeList = coinMachineChange(toRaw(insertedCoins.value), change)
+    console.log('changeList >>', changeList)
+
     if (changeList) {
       changeCoins.value = Object.entries(changeList).flatMap(([coin, count]) =>
         Array(Number(count)).fill(Number(coin)),

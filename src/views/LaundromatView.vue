@@ -9,6 +9,7 @@ import CoinMachine from '@/components/CoinMachine.vue'
 
 const showModal = ref(false)
 const hasStarted = ref(false)
+// Faris comment: use constant Mode key
 const selectedMode = ref<WashingModeKey>('NORMAL')
 const player = ref<DotLottieVueInstance | null>(null)
 
@@ -105,8 +106,10 @@ const progress = computed(() => {
 
     <BaseModal v-model:isOpen="showModal" header="✨ Ready to Start?" class="cute-modal">
       <div class="modal-content" style="min-width: 320px">
+        <!-- Faris comment: change to tailwind -->
         <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem">
           <CoinMachine :price="modePrice" />
+
           <div style="font-size: 1.15rem; color: #555; margin-bottom: 0.5rem">
             <span>Mode:</span>
             <strong style="margin-left: 0.5rem; color: #0078d4">
@@ -143,8 +146,10 @@ const progress = computed(() => {
     </BaseModal>
   </div>
 </template>
-
+<!-- Faris comment: change to scss -->
 <style scoped>
+/* Faris comment: can move to global styles, move to local font folder src/assets/fonts */
+/* tailwind config font */
 @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@600&display=swap');
 
 .laundromat-view {
@@ -266,13 +271,15 @@ const progress = computed(() => {
   color: #aaa;
 }
 
-.cute-modal >>> .modal-content {
+/* Faris commit what is >>> */
+/* .modal-content {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1.2rem;
-}
+} */
 
+/* Faris comment: remove styled duplicate class from tailwind*/
 .mt-4 {
   margin-top: 1.2rem;
 }
