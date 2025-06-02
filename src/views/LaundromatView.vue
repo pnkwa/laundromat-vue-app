@@ -2,7 +2,7 @@
 import { ref, computed, watch } from 'vue'
 import BaseModal from '@/components/base/BaseModal.vue'
 import CountdownLabel from '@/components/base/CountdownLabel.vue'
-import { useCountdownWashing } from '@/composible/use-countdown-washing'
+import { useCountdownWashing } from '@/composable/use-countdown-washing'
 import { laundromatMode, type WashingModeKey } from '@/types/washing-machine-types'
 import { DotLottieVue, type DotLottieVueInstance } from '@lottiefiles/dotlottie-vue'
 import CoinMachine from '@/components/CoinMachine.vue'
@@ -26,11 +26,9 @@ const startButtonLabel = computed(() =>
 const modePrice = computed(() => laundromatMode[selectedMode.value].price)
 
 function handleStartOrResume() {
-  if (countdown.remaining.value > 0 && !countdown.isRunning.value) {
-    countdown.resumeCountdown()
-  } else {
-    countdown.begin(laundromatMode[selectedMode.value].timeCount)
-  }
+  if (countdown.remaining.value > 0 && !countdown.isRunning.value) countdown.resumeCountdown()
+  else countdown.begin(laundromatMode[selectedMode.value].timeCount)
+
   player.value?.getDotLottieInstance()?.play()
   hasStarted.value = true
   showModal.value = false
@@ -42,9 +40,7 @@ function pause() {
 }
 
 watch(selectedMode, () => {
-  if (!countdown.isRunning.value) {
-    player.value?.getDotLottieInstance()?.stop()
-  }
+  if (!countdown.isRunning.value) player.value?.getDotLottieInstance()?.stop()
 })
 
 const progress = computed(() => {
@@ -72,7 +68,6 @@ const progress = computed(() => {
         :hours="countdown.timeLeft.value.hours"
         :minutes="countdown.timeLeft.value.minutes"
         :seconds="countdown.timeLeft.value.seconds"
-        class="mt-4"
       />
 
       <div class="btn-group">
@@ -105,14 +100,13 @@ const progress = computed(() => {
     </div>
 
     <BaseModal v-model:isOpen="showModal" header="✨ Ready to Start?" class="cute-modal">
-      <div class="modal-content" style="min-width: 320px">
-        <!-- Faris comment: change to tailwind -->
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem">
+      <div class="modal-content min-w-[320px]">
+        <div class="flex flex-col items-center gap-4">
           <CoinMachine :price="modePrice" />
 
-          <div style="font-size: 1.15rem; color: #555; margin-bottom: 0.5rem">
+          <div class="text-[1.15rem] text-[#555] mb-2">
             <span>Mode:</span>
-            <strong style="margin-left: 0.5rem; color: #0078d4">
+            <strong class="ml-2 text-[#0078d4]">
               {{ laundromatMode[selectedMode].label }}
             </strong>
           </div>
@@ -120,26 +114,16 @@ const progress = computed(() => {
         <button
           @click="handleStartOrResume"
           :disabled="countdown.isRunning.value"
-          class="start-btn cute-btn"
-          style="
-            margin-top: 1.7rem;
-            width: 100%;
-            font-size: 1.13rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.6em;
-          "
+          class="start-btn cute-btn mt-7 w-full text-[1.13rem] flex items-center justify-center gap-2.5"
         >
-          <span style="font-size: 1.3em">🧼</span>
+          <span class="text-[1.3em]">🧼</span>
           <span>Start Washing</span>
         </button>
         <button
           @click="showModal = false"
-          class="cute-btn secondary"
-          style="margin-top: 0.8rem; width: 100%"
+          class="cute-btn secondary mt-2 w-full flex items-center justify-center gap-2"
         >
-          <span style="font-size: 1.1em">❌</span>
+          <span class="text-[1.1em]">❌</span>
           <span>Cancel</span>
         </button>
       </div>
@@ -280,7 +264,4 @@ const progress = computed(() => {
 } */
 
 /* Faris comment: remove styled duplicate class from tailwind*/
-.mt-4 {
-  margin-top: 1.2rem;
-}
 </style>

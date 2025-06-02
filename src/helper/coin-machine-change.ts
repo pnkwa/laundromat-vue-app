@@ -18,8 +18,6 @@ export const coinMachineChange = (
   let remaining = amount
   let total = 0
 
-  console.log('sortedCoins >>', sortedCoins)
-
   for (const coin of sortedCoins) {
     let count = 0
     while (tempCoin[coin] > 0 && remaining >= coin) {

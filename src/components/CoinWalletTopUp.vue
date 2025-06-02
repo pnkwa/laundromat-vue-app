@@ -1,11 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { coin } from '@/types/coin-types'
-import { useMyCoinWallet } from '@/composible/use-my-coin'
+import { useMyCoinWallet } from '@/composable/use-my-coin'
 
-const { myCoin, addCoinsWallet } = useMyCoinWallet()
-
-const totalCoins = computed(() => Object.values(myCoin.value).reduce((sum, n) => sum + n, 0))
+const { myCoin, addCoinsWallet, totalMyCoins } = useMyCoinWallet()
 </script>
 
 <template>
@@ -49,7 +46,7 @@ const totalCoins = computed(() => Object.values(myCoin.value).reduce((sum, n) =>
       <div class="flex justify-between items-center mt-4 pt-3 border-t">
         <span class="font-semibold text-blue-700 text-lg">Total</span>
         <span class="font-mono text-2xl font-extrabold text-yellow-500 drop-shadow">{{
-          totalCoins
+          totalMyCoins
         }}</span>
       </div>
     </div>

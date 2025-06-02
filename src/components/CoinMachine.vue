@@ -1,22 +1,14 @@
 <script lang="ts" setup>
 import { useCoinMachineStore } from '@/stores/coin-machine-store'
 import { coin, type CoinKey } from '@/types/coin-types'
-import { useMyCoinWallet } from '@/composible/use-my-coin'
-import { computed, watch, ref, onMounted } from 'vue'
-
+import { useMyCoinWallet } from '@/composable/use-my-coin'
+import { watch, ref, onMounted } from 'vue'
 const props = defineProps<{
   price: number
 }>()
 
 const coinMachineStore = useCoinMachineStore()
-const { myCoin, addCoinsWallet, useCoinsWallet } = useMyCoinWallet()
-
-// Faris comment: move to store
-const myCoinTotal = computed(() =>
-  Object.entries(myCoin.value).reduce((sum, [key, count]) => sum + coin[key as never] * count, 0),
-)
-
-// const myWalletDisplay = computed(() => myCoin.value)
+const { myCoin, addCoinsWallet, totalMyCoins } = useMyCoinWallet()
 
 watch(
   () => props.price,
@@ -27,20 +19,14 @@ watch(
         Array(count).fill(coin[key as CoinKey]),
       ),
     ]
-    // console.log('available >>', available)
-
     coinMachineStore.startTransaction(newPrice, available)
   },
   { immediate: true },
 )
 
-// Faris comment: parameter type to name coin constant
-const handleInsert = (value: number) => {
-  const coinEntry = Object.entries(coin).find(([, v]) => v === value)
-  console.log('coinEntry >>', coinEntry)
-
-  const coinKey = coinEntry?.[0] as CoinKey | undefined
-  if (coinKey && myCoin.value[coinKey] > 0 && coinMachineStore.canInsert) {
+const handleInsert = (coinKey: CoinKey) => {
+  const value = coin[coinKey]
+  if (myCoin.value[coinKey] > 0 && coinMachineStore.canInsert) {
     coinMachineStore.insertCoin(value)
     myCoin.value[coinKey]--
   }
@@ -49,7 +35,7 @@ const handleInsert = (value: number) => {
 const handleConfirm = () => {
   const success = coinMachineStore.completeTransaction()
   if (success) {
-    useCoinsWallet(coinMachineStore.insertedCoins)
+    useMyCoinWallet()
     addCoinsWallet(coinMachineStore.changeCoins)
   }
 }
@@ -83,14 +69,14 @@ onMounted(() => {
             <span>💰</span> {{ name }}: <span class="font-bold">{{ count }}</span>
           </li>
         </ul>
-        <p class="mt-2 font-bold text-yellow-600">Total: {{ myCoinTotal }}</p>
+        <p class="mt-2 font-bold text-yellow-600">Total: {{ totalMyCoins }}</p>
       </div>
 
       <div class="flex flex-wrap gap-3 mt-4">
         <button
           v-for="(value, name) in coin"
           :key="name"
-          @click="handleInsert(value)"
+          @click="handleInsert(name as CoinKey)"
           :disabled="myCoin[name as CoinKey] <= 0 || !coinMachineStore.canInsert"
           class="bg-pink-200 text-pink-700 px-4 py-2 rounded-full shadow hover:bg-pink-300 disabled:opacity-40 font-cute transition"
         >

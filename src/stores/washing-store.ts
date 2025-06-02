@@ -6,7 +6,6 @@ import {
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
-// Faris comment: remove file unused function
 export const useWashingStore = defineStore('washing', () => {
   const selectedMode = ref<WashingModeKey>('NORMAL')
   const currentConfig = computed<LaundromatOption | undefined>(() => {
