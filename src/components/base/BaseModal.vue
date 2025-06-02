@@ -105,6 +105,7 @@ defineExpose({ openModal, closeModal })
           </div>
 
           <div
+            v-if="BaseModalprops.leftButton || BaseModalprops.rightButton"
             class="flex items-center p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600 justify-end"
           >
             <button

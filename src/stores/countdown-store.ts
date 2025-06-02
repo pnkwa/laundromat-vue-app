@@ -8,12 +8,10 @@ export const useCountdownStore = defineStore('countdown', () => {
   const initialSecTime = ref(0)
   const { remaining, isActive, start, pause, resume, reset } = useCountdown(initialSecTime)
   const onComplete = ref<() => void>()
-  const onTick = ref<(time: TimeConfig) => void>()
 
   const timeLeft = computed(() => secondsToTimeConfig(remaining.value))
 
   watch(remaining, (time) => {
-    onTick.value?.(secondsToTimeConfig(time))
     if (time === 0 && !isActive.value) onComplete.value?.()
   })
 
