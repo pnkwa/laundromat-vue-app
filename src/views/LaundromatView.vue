@@ -3,14 +3,18 @@ import { ref, computed, watch } from 'vue'
 import BaseModal from '@/components/base/BaseModal.vue'
 import CountdownLabel from '@/components/base/CountdownLabel.vue'
 import { useCountdownWashing } from '@/composable/use-countdown-washing'
-import { laundromatMode, type WashingModeKey } from '@/types/washing-machine-types'
+import {
+  laundromatMode,
+  NORMAL,
+  HEAVY_DUTY,
+  type WashingModeKey,
+} from '@/types/washing-machine-types'
 import { DotLottieVue, type DotLottieVueInstance } from '@lottiefiles/dotlottie-vue'
 import CoinMachine from '@/components/CoinMachine.vue'
 
 const showModal = ref(false)
 const hasStarted = ref(false)
-// Faris comment: use constant Mode key
-const selectedMode = ref<WashingModeKey>('NORMAL')
+const selectedMode = ref<WashingModeKey>(NORMAL)
 const player = ref<DotLottieVueInstance | null>(null)
 
 const countdown = useCountdownWashing({
@@ -81,17 +85,17 @@ const progress = computed(() => {
 
       <div class="mode-select">
         <button
-          @click="selectedMode = 'NORMAL'"
+          @click="selectedMode = NORMAL"
           :disabled="countdown.isRunning.value"
-          :class="{ active: selectedMode === 'NORMAL' }"
+          :class="{ active: selectedMode === NORMAL }"
           class="cute-btn"
         >
           🧺 Normal
         </button>
         <button
-          @click="selectedMode = 'HEAVY_DUTY'"
+          @click="selectedMode = HEAVY_DUTY"
           :disabled="countdown.isRunning.value"
-          :class="{ active: selectedMode === 'HEAVY_DUTY' }"
+          :class="{ active: selectedMode === HEAVY_DUTY }"
           class="cute-btn"
         >
           💪 Heavy
@@ -118,13 +122,6 @@ const progress = computed(() => {
         >
           <span class="text-[1.3em]">🧼</span>
           <span>Start Washing</span>
-        </button>
-        <button
-          @click="showModal = false"
-          class="cute-btn secondary mt-2 w-full flex items-center justify-center gap-2"
-        >
-          <span class="text-[1.1em]">❌</span>
-          <span>Cancel</span>
         </button>
       </div>
     </BaseModal>
