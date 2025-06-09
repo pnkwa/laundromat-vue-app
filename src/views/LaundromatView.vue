@@ -11,40 +11,52 @@ import {
 } from '@/types/washing-machine-types'
 import { DotLottieVue, type DotLottieVueInstance } from '@lottiefiles/dotlottie-vue'
 import CoinMachine from '@/components/CoinMachine.vue'
+import { useCoinMachineStore } from '@/stores/coin-machine-store'
 
 const showModal = ref(false)
 const hasStarted = ref(false)
 const selectedMode = ref<WashingModeKey>(NORMAL)
-const player = ref<DotLottieVueInstance | null>(null)
-
+const player = ref<DotLottieVueInstance | undefined>(undefined)
+const isPaused = ref(false)
 const countdown = useCountdownWashing({
   onComplete: () => {
     player.value?.getDotLottieInstance()?.stop()
   },
 })
 
-const startButtonLabel = computed(() =>
-  countdown.remaining.value > 0 && !countdown.isRunning.value ? 'Resume' : 'Power On',
+const useCoinMachine = useCoinMachineStore()
+
+const pauseOrResumeLabel = computed(() =>
+  countdown.isRunning.value ? 'Pause' : countdown.remaining.value > 0 ? 'Resume' : 'Pause',
 )
-
 const modePrice = computed(() => laundromatMode[selectedMode.value].price)
+const selectedModeObj = computed(() => laundromatMode[selectedMode.value])
+const coinChange = computed(() => useCoinMachine.changeCoins)
 
-function handleStartOrResume() {
-  if (countdown.remaining.value > 0 && !countdown.isRunning.value) countdown.resumeCountdown()
-  else countdown.begin(laundromatMode[selectedMode.value].timeCount)
-
+function handleStart() {
+  countdown.begin(laundromatMode[selectedMode.value].timeCount)
   player.value?.getDotLottieInstance()?.play()
   hasStarted.value = true
   showModal.value = false
+  useCoinMachine.completeTransaction()
 }
 
-function pause() {
-  countdown.pauseCountdown()
-  player.value?.getDotLottieInstance()?.pause()
+function pauseOrResume() {
+  if (countdown.isRunning.value) {
+    countdown.pauseCountdown()
+    player.value?.getDotLottieInstance()?.pause()
+    isPaused.value = true
+  } else if (countdown.remaining.value > 0) {
+    countdown.resumeCountdown()
+    player.value?.getDotLottieInstance()?.play()
+    isPaused.value = false
+  }
 }
 
 watch(selectedMode, () => {
-  if (!countdown.isRunning.value) player.value?.getDotLottieInstance()?.stop()
+  if (!countdown.isRunning.value) {
+    player.value?.getDotLottieInstance()?.stop()
+  }
 })
 
 const progress = computed(() => {
@@ -75,30 +87,33 @@ const progress = computed(() => {
       />
 
       <div class="btn-group">
-        <button @click="showModal = true" type="button" class="cute-btn">
-          {{ startButtonLabel }}
+        <button
+          @click="showModal = true"
+          class="cute-btn"
+          :disabled="countdown.isRunning.value || isPaused"
+        >
+          Power On
         </button>
-        <button @click="pause" :disabled="!countdown.isRunning.value" class="cute-btn secondary">
-          Pause
+        <button
+          @click="pauseOrResume"
+          :disabled="countdown.remaining.value === 0"
+          class="cute-btn secondary"
+        >
+          {{ pauseOrResumeLabel }}
         </button>
       </div>
 
       <div class="mode-select">
         <button
-          @click="selectedMode = NORMAL"
-          :disabled="countdown.isRunning.value"
-          :class="{ active: selectedMode === NORMAL }"
+          v-for="mode in [NORMAL, HEAVY_DUTY]"
+          :key="mode"
+          @click="selectedMode = mode"
+          :class="{ active: selectedMode === mode }"
+          :disabled="countdown.isRunning.value || isPaused"
           class="cute-btn"
         >
-          🧺 Normal
-        </button>
-        <button
-          @click="selectedMode = HEAVY_DUTY"
-          :disabled="countdown.isRunning.value"
-          :class="{ active: selectedMode === HEAVY_DUTY }"
-          class="cute-btn"
-        >
-          💪 Heavy
+          <span v-if="mode === NORMAL">🧺 Normal</span>
+          <span v-else-if="mode === HEAVY_DUTY">💪 Heavy</span>
         </button>
       </div>
     </div>
@@ -109,22 +124,27 @@ const progress = computed(() => {
           <CoinMachine :price="modePrice" />
 
           <div class="text-[1.15rem] text-[#555] mb-2">
-            <span>Mode:</span>
             <strong class="ml-2 text-[#0078d4]">
-              {{ laundromatMode[selectedMode].label }}
+              {{ selectedModeObj.label }}
             </strong>
           </div>
         </div>
         <button
-          @click="handleStartOrResume"
+          @click="handleStart"
           :disabled="countdown.isRunning.value"
-          class="start-btn cute-btn mt-7 w-full text-[1.13rem] flex items-center justify-center gap-2.5"
+          class="cute-btn mt-7 w-full text-[1.13rem] flex items-center justify-center gap-2.5"
         >
-          <span class="text-[1.3em]">🧼</span>
+          <span>🧼</span>
           <span>Start Washing</span>
         </button>
       </div>
     </BaseModal>
+    <div class="mt-6">
+      <h3 class="text-lg font-semibold text-[#0078d4]">Change Returned:</h3>
+      <ul class="list-disc ml-5 mt-2">
+        <li v-for="(amount, idx) in coinChange" :key="idx">{{ amount }}</li>
+      </ul>
+    </div>
   </div>
 </template>
 <!-- Faris comment: change to scss -->
@@ -251,14 +271,4 @@ const progress = computed(() => {
   background: #eee;
   color: #aaa;
 }
-
-/* Faris commit what is >>> */
-/* .modal-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.2rem;
-} */
-
-/* Faris comment: remove styled duplicate class from tailwind*/
 </style>

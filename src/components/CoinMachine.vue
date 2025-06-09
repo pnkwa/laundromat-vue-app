@@ -2,7 +2,7 @@
 import { useCoinMachineStore } from '@/stores/coin-machine-store'
 import { useMyCoinWallet } from '@/stores/my-wallet-store'
 import { coin, type CoinKey } from '@/types/coin-types'
-import { watch, ref, onMounted, computed } from 'vue'
+import { watch, ref } from 'vue'
 
 const props = defineProps<{
   price: number
@@ -35,87 +35,78 @@ const handleInsert = (coinKey: CoinKey) => {
     myWallet.removeNumCoinFromWallet(coinKey, 1)
   }
 }
-
-const poweredOn = ref(false)
-onMounted(() => {
-  setTimeout(() => {
-    poweredOn.value = true
-  }, 100)
-})
 </script>
 
 <template>
-  <transition name="slip">
-    <div v-if="poweredOn" class="cute-machine p-6 max-w-md mx-auto space-y-5">
-      <h2 class="text-2xl font-extrabold text-pink-500 flex items-center gap-2 font-cute">
-        <span>🧺</span> Laundromat Coin Machine
-      </h2>
+  <div class="cute-machine p-6 max-w-md mx-auto space-y-5">
+    <h2 class="text-2xl font-extrabold text-pink-500 flex items-center gap-2 font-cute">
+      <span>🧺</span> Laundromat Coin Machine
+    </h2>
 
-      <div>
-        <p class="font-semibold text-blue-500">My Wallet:</p>
-        <ul class="ml-4 flex gap-3">
-          <li
-            v-for="(count, name) in myCoin"
-            :key="name"
-            class="bg-white/80 rounded-xl px-3 py-1 shadow font-cute text-sm flex items-center gap-1"
-          >
-            <span>💰</span> {{ name }}: <span class="font-bold">{{ count }}</span>
-          </li>
-        </ul>
-        <p class="mt-2 font-bold text-yellow-600">Total: {{ myWallet.totalCoins }}</p>
-      </div>
-
-      <div class="flex flex-wrap gap-3 mt-4">
-        <button
-          v-for="(value, name) in coin"
+    <div>
+      <p class="font-semibold text-blue-500">My Wallet:</p>
+      <ul class="ml-4 flex gap-3">
+        <li
+          v-for="(count, name) in myCoin"
           :key="name"
-          @click="handleInsert(name as CoinKey)"
-          :disabled="!coinMachineStore.canInsert || myCoin[name as CoinKey] <= 0"
-          class="bg-pink-200 text-pink-700 px-4 py-2 rounded-full shadow hover:bg-pink-300 disabled:opacity-40 font-cute transition"
+          class="bg-white/80 rounded-xl px-3 py-1 shadow font-cute text-sm flex items-center gap-1"
         >
-          Insert {{ name }} <span class="text-xs">({{ value }})</span>
-        </button>
-      </div>
-
-      <div class="bg-white/70 rounded-xl p-3 shadow">
-        <p>
-          <strong>Inserted Total:</strong>
-          <span class="text-blue-600">{{ coinMachineStore.total }}</span>
-        </p>
-        <p>
-          <strong>Inserted Coins:</strong>
-          <span class="text-gray-700">
-            {{
-              coinMachineStore.insertedCoins.length
-                ? coinMachineStore.insertedCoins.join(', ')
-                : 'None'
-            }}
-          </span>
-        </p>
-      </div>
-
-      <div>
-        <label class="block font-semibold text-blue-400">Laundry Price</label>
-        <p class="border px-2 py-1 rounded bg-yellow-100 font-bold text-yellow-700 shadow-inner">
-          {{ props.price }}
-        </p>
-      </div>
-
-      <div v-if="coinMachineStore.requiredAmount > 0" class="text-red-500 font-cute text-center">
-        Not enough coins inserted.
-      </div>
-
-      <div
-        v-else-if="coinMachineStore.changeCoins.length > 0"
-        class="text-green-600 font-cute space-y-1 text-center"
-      >
-        <p>
-          <strong>Change ({{ coinMachineStore.totalChange }}):</strong>
-        </p>
-        <p>{{ coinMachineStore.changeCoins.join(', ') }}</p>
-      </div>
+          <span>💰</span> {{ name }}: <span class="font-bold">{{ count }}</span>
+        </li>
+      </ul>
+      <p class="mt-2 font-bold text-yellow-600">Total: {{ myWallet.totalCoins }}</p>
     </div>
-  </transition>
+
+    <div class="flex flex-wrap gap-3 mt-4">
+      <button
+        v-for="(value, name) in coin"
+        :key="name"
+        @click="handleInsert(name as CoinKey)"
+        :disabled="!coinMachineStore.canInsert || myCoin[name as CoinKey] <= 0"
+        class="bg-pink-200 text-pink-700 px-4 py-2 rounded-full shadow hover:bg-pink-300 disabled:opacity-40 font-cute transition"
+      >
+        Insert {{ name }} <span class="text-xs">({{ value }})</span>
+      </button>
+    </div>
+
+    <div class="bg-white/70 rounded-xl p-3 shadow">
+      <p>
+        <strong>Inserted Total:</strong>
+        <span class="text-blue-600">{{ coinMachineStore.insertedCoinsTotal }}</span>
+      </p>
+      <p>
+        <strong>Inserted Coins:</strong>
+        <span class="text-gray-700">
+          {{
+            coinMachineStore.insertedCoins.length
+              ? coinMachineStore.insertedCoins.join(', ')
+              : 'None'
+          }}
+        </span>
+      </p>
+    </div>
+
+    <div>
+      <label class="block font-semibold text-blue-400">Laundry Price</label>
+      <p class="border px-2 py-1 rounded bg-yellow-100 font-bold text-yellow-700 shadow-inner">
+        {{ props.price }}
+      </p>
+    </div>
+
+    <div v-if="coinMachineStore.requiredAmount > 0" class="text-red-500 font-cute text-center">
+      Not enough coins inserted.
+    </div>
+
+    <div
+      v-else-if="coinMachineStore.changeCoins.length > 0"
+      class="text-green-600 font-cute space-y-1 text-center"
+    >
+      <p>
+        <strong>Change ({{ coinMachineStore.totalChange }}):</strong>
+      </p>
+      <p>{{ coinMachineStore.changeCoins.join(', ') }}</p>
+    </div>
+  </div>
 </template>
 
 <style scoped>

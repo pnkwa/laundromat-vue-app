@@ -4,7 +4,7 @@ import { coinMachineChange } from '@/helper/coin-machine-change'
 
 export const useCoinMachineStore = defineStore('coin', () => {
   const insertedCoins = ref<number[]>([])
-  const total = ref(0)
+  const insertedCoinsTotal = ref(0)
   const changeCoins = ref<number[]>([])
   const totalChange = ref(0)
   const price = ref(0)
@@ -16,19 +16,19 @@ export const useCoinMachineStore = defineStore('coin', () => {
     availableCoins.value = coins
   }
 
-  const requiredAmount = computed(() => Math.max(price.value - total.value, 0))
+  const requiredAmount = computed(() => Math.max(price.value - insertedCoinsTotal.value, 0))
 
-  const canInsert = computed(() => total.value < price.value)
+  const canInsert = computed(() => insertedCoinsTotal.value < price.value)
 
   const insertCoin = (value: number) => {
     if (!canInsert.value) return
     insertedCoins.value.push(value)
-    total.value += value
+    insertedCoinsTotal.value += value
   }
 
   const completeTransaction = () => {
-    if (total.value < price.value) return false
-    const change = total.value - price.value
+    if (insertedCoinsTotal.value < price.value) return false
+    const change = insertedCoinsTotal.value - price.value
     totalChange.value = change
 
     const changeList = coinMachineChange(toRaw(insertedCoins.value), change)
@@ -39,12 +39,11 @@ export const useCoinMachineStore = defineStore('coin', () => {
     } else changeCoins.value = []
 
     setTimeout(reset, 1000)
-    return true
   }
 
   const reset = () => {
     insertedCoins.value = []
-    total.value = 0
+    insertedCoinsTotal.value = 0
     changeCoins.value = []
     totalChange.value = 0
     price.value = 0
@@ -53,7 +52,7 @@ export const useCoinMachineStore = defineStore('coin', () => {
 
   return {
     insertedCoins,
-    total,
+    insertedCoinsTotal,
     changeCoins,
     totalChange,
     price,
