@@ -28,11 +28,11 @@ watch(
 )
 
 const handleInsert = (coinKey: CoinKey) => {
-  const value = coin[coinKey]
+  const coinValue = coin[coinKey]
   if (myCoin.value[coinKey] > 0 && coinMachineStore.canInsert) {
-    coinMachineStore.insertCoin(value)
+    coinMachineStore.insertCoin(coinValue)
     myCoin.value[coinKey]--
-    myWallet.removeNumCoinFromWallet(coinKey, 1)
+    myWallet.removeCoinFromWallet(coinKey, coinValue)
   }
 }
 </script>

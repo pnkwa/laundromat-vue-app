@@ -12,6 +12,7 @@ import {
 import { DotLottieVue, type DotLottieVueInstance } from '@lottiefiles/dotlottie-vue'
 import CoinMachine from '@/components/CoinMachine.vue'
 import { useCoinMachineStore } from '@/stores/coin-machine-store'
+import { useMyCoinWallet } from '@/stores/my-wallet-store'
 
 const showModal = ref(false)
 const hasStarted = ref(false)
@@ -23,6 +24,7 @@ const countdown = useCountdownWashing({
     player.value?.getDotLottieInstance()?.stop()
   },
 })
+const myWallet = useMyCoinWallet()
 
 const useCoinMachine = useCoinMachineStore()
 
@@ -39,6 +41,19 @@ function handleStart() {
   hasStarted.value = true
   showModal.value = false
   useCoinMachine.completeTransaction()
+  // Assuming coinChange.value is an array of numbers representing coin values (e.g., 1, 5, 10)
+  const coinValueToName = {
+    1: 'PENNY',
+    5: 'NICKEL',
+    10: 'DIME',
+  } as const
+
+  coinChange.value.forEach((value: number) => {
+    const coin = coinValueToName[value as keyof typeof coinValueToName]
+    if (coin) {
+      myWallet.addCoinToWallet(coin, 1)
+    }
+  })
 }
 
 function pauseOrResume() {

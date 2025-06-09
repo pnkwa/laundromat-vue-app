@@ -39,6 +39,7 @@ export const useCoinMachineStore = defineStore('coin', () => {
     } else changeCoins.value = []
 
     setTimeout(reset, 1000)
+    return changeList
   }
 
   const reset = () => {
