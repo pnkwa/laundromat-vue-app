@@ -1,125 +1,196 @@
 <script setup lang="ts">
 import homepageImage from '@/assets/homepage-image.png'
+import BlobButton from '@/components/BlobButton.vue'
+
+const bubbles = Array.from({ length: 20 }, () => {
+  const size = 10 + Math.random() * 30
+  const left = Math.random() * 100
+  const delay = -6 * Math.random()
+  return {
+    width: `${size}px`,
+    height: `${size}px`,
+    left: `${left}%`,
+    animationDelay: `${delay}s`,
+  }
+})
 </script>
 
 <template>
-  <main class="homepage">
-    <div class="homepage-content">
-      <div class="homepage-text">
-        <h1 class="homepage-title">Welcome to CuCuWash!</h1>
-        <p class="homepage-desc">
-          Enjoy a cozy laundry experience.<br />
-          Insert coins, start washing, and relax!
-        </p>
-        <router-link to="/TopUp" class="homepage-btn">Top Up Coins 💰</router-link>
+  <div class="homepage">
+    <div class="bubble-bg">
+      <span v-for="(bubble, index) in bubbles" :key="index" class="bubble" :style="bubble"></span>
+    </div>
+    <div class="text-content">
+      <div class="main-title">
+        <h1 class="title">Welcome to</h1>
+        <h1 class="logo">CuCuWash</h1>
       </div>
-
-      <div class="homepage-image-wrapper">
-        <img :src="homepageImage" alt="Laundromat" class="homepage-image" />
+      <p class="desc">Enjoy a cozy laundry experience.<br /></p>
+      <div class="btns">
+        <BlobButton text="Top Up Coins" @click="$router.push('/TopUp')" />
+        <BlobButton text="Start Washing" @click="$router.push('/Laundromat')" />
       </div>
     </div>
-  </main>
+
+    <div class="img">
+      <img :src="homepageImage" alt="Laundromat" />
+    </div>
+  </div>
 </template>
-
 <style lang="scss" scoped>
+@use '/src/assets/globals' as *;
+
 .homepage {
-  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+  height: $min-height;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
-  background: linear-gradient(135deg, #f8e1f4 0%, #e1f4f8 100%);
-  font-family: 'Quicksand', 'Baloo 2', cursive, sans-serif;
-}
+  background: $laundry-bg-gradient;
+  font-family: $font-main;
 
-.homepage-content {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  gap: 3rem;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 2rem;
-  padding: 3rem;
-  max-width: 960px;
-  width: 100%;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
-  animation: fadeIn 0.8s ease-out;
+  .bubble-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
 
-  @media (max-width: 768px) {
-    flex-direction: column-reverse;
+    .bubble {
+      position: absolute;
+      bottom: -100px;
+      background: rgb(255, 255, 255);
+      border-radius: 50%;
+      animation: bubbleUp 6s linear infinite;
+      filter: blur(1px);
+    }
+  }
+
+  @keyframes bubbleUp {
+    0% {
+      transform: translateY(0) scale(1);
+      opacity: 0.7;
+    }
+    80% {
+      opacity: 0.5;
+    }
+    100% {
+      transform: translateY(-110vh) scale(1.2);
+      opacity: 0;
+    }
+  }
+
+  .text-content {
+    position: relative;
+    z-index: 1;
     text-align: center;
-    padding: 2rem;
-    gap: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 2rem;
+    max-width: 800px;
+    width: 90%;
+    margin: 0 auto;
+
+    .main-title {
+      display: flex;
+      align-items: center;
+      font-size: 3.5rem;
+      margin-top: 2rem;
+
+      @media (max-width: 768px) {
+        font-size: 2.5rem;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .title {
+        font-weight: 900;
+        color: $color-dark;
+      }
+
+      .logo {
+        color: $color-light;
+        background-color: $color-blue;
+        border: 6px solid $color-blue;
+        padding: 4px 12px;
+        border-radius: 40px;
+        width: fit-content;
+        font-weight: 700;
+        margin-left: 10px;
+
+        @media (max-width: 768px) {
+          margin-left: 0;
+          border-width: 4px;
+        }
+      }
+    }
+
+    .desc {
+      font-size: 1.1rem;
+      margin-top: 1rem;
+      color: $color-dark;
+      max-width: 400px;
+    }
+
+    .btns {
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+      margin: 2rem 0;
+
+      @media (max-width: 768px) {
+        flex-direction: column;
+        gap: 1rem;
+        width: 100%;
+        max-width: 300px;
+      }
+
+      :deep(.blob-btn) {
+        margin: 0;
+        background: #f0f0f0;
+        font-size: 1.2rem;
+        padding: 0.8rem 1.5rem;
+
+        @media (max-width: 768px) {
+          width: 100%;
+        }
+      }
+    }
   }
-}
 
-.homepage-text {
-  flex: 1;
-}
+  .img {
+    position: relative;
+    z-index: 1;
+    margin-top: auto;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    max-width: 1000px;
+    margin: 0 auto;
 
-.homepage-title {
-  font-size: 2.8rem;
-  font-weight: bold;
-  color: #e17cb8;
-  margin-bottom: 1rem;
-  font-family: 'Baloo 2', cursive;
-  letter-spacing: 1px;
-}
+    &::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      width: 70%;
+      aspect-ratio: 1/0.75;
+      background: rgb(255, 255, 255);
+      border-top-left-radius: 100% 100%;
+      border-top-right-radius: 100% 100%;
+      transform: translateY(50%);
+      z-index: 0;
+    }
 
-.homepage-desc {
-  font-size: 1.15rem;
-  color: #7b8fa1;
-  line-height: 1.6;
-  margin-bottom: 2rem;
-}
-
-.homepage-btn {
-  display: inline-block;
-  background: linear-gradient(90deg, #fbc2eb 0%, #a6c1ee 100%);
-  color: #fff;
-  font-weight: 700;
-  font-size: 1.15rem;
-  padding: 0.9rem 2.5rem;
-  border-radius: 2rem;
-  text-decoration: none;
-  box-shadow: 0 4px 12px rgba(251, 194, 235, 0.3);
-  transition: all 0.25s ease;
-
-  &:hover {
-    background: linear-gradient(90deg, #a6c1ee 0%, #fbc2eb 100%);
-    transform: scale(1.05);
-  }
-
-  &:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(226, 147, 204, 0.3);
-  }
-}
-
-.homepage-image-wrapper {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-}
-
-.homepage-image {
-  max-width: 260px;
-  width: 100%;
-
-  @media (max-width: 768px) {
-    max-width: 200px;
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+    img {
+      position: relative;
+      z-index: 1;
+      max-width: 70%;
+      height: auto;
+    }
   }
 }
 </style>

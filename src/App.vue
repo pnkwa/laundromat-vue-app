@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
+import { useMyCoinWallet } from '@/stores/my-wallet-store'
+
+const myWallet = useMyCoinWallet()
 </script>
 
 <template>
@@ -7,11 +10,17 @@ import { RouterLink, RouterView } from 'vue-router'
     <div class="navbar-wrapper">
       <RouterLink to="/" class="navbar-logo">CuCuWash</RouterLink>
 
-      <nav class="navbar-links">
-        <RouterLink to="/" exact-active-class="active-link">Home</RouterLink>
-        <RouterLink to="/Laundromat" exact-active-class="active-link">Laundromat</RouterLink>
-        <RouterLink to="/TopUp" exact-active-class="active-link">Top Up</RouterLink>
-      </nav>
+      <div class="navbar-right">
+        <nav class="navbar-links">
+          <RouterLink to="/" exact-active-class="active-link">Home</RouterLink>
+          <RouterLink to="/Laundromat" exact-active-class="active-link">Laundromat</RouterLink>
+          <RouterLink to="/TopUp" exact-active-class="active-link">Top Up</RouterLink>
+        </nav>
+        <div class="total-coins">
+          <img src="/assets/svg/icon-my-wallet.svg" alt="Wallet" class="coin-icon" />
+          <span class="total-amount">{{ myWallet.totalCoins }}</span>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -42,28 +51,56 @@ import { RouterLink, RouterView } from 'vue-router'
       text-decoration: none;
     }
 
-    .navbar-links {
+    .navbar-right {
       display: flex;
-      gap: 1.5rem;
+      align-items: center;
+      gap: 2rem;
 
-      a {
-        font-size: 1rem;
-        font-weight: 600;
-        color: #fff;
-        text-decoration: none;
-        padding: 0.4rem 0.8rem;
-        border-radius: 0.5rem;
-        transition:
-          background 0.3s,
-          transform 0.2s;
+      .total-coins {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        backdrop-filter: blur(4px);
 
-        &:hover {
-          background: rgba(255, 255, 255, 0.2);
-          transform: scale(1.05);
+        .coin-icon {
+          width: 20px;
+          height: 20px;
+          filter: invert(1) brightness(1.2);
         }
 
-        &.active-link {
-          background: rgba(255, 255, 255, 0.3);
+        .total-amount {
+          font-weight: 600;
+          color: #fff;
+          font-size: 1.1rem;
+        }
+      }
+
+      .navbar-links {
+        display: flex;
+        gap: 1.5rem;
+
+        a {
+          font-size: 1rem;
+          font-weight: 600;
+          color: #fff;
+          text-decoration: none;
+          padding: 0.4rem 0.8rem;
+          border-radius: 0.5rem;
+          transition:
+            background 0.3s,
+            transform 0.2s;
+
+          &:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+          }
+
+          &.active-link {
+            background: rgba(255, 255, 255, 0.3);
+          }
         }
       }
     }
@@ -75,12 +112,24 @@ import { RouterLink, RouterView } from 'vue-router'
       align-items: flex-start;
       gap: 0.75rem;
 
-      .navbar-links {
+      .navbar-right {
         flex-direction: column;
         width: 100%;
+        gap: 1rem;
 
-        a {
+        .total-coins {
           width: 100%;
+          justify-content: center;
+        }
+
+        .navbar-links {
+          flex-direction: column;
+          width: 100%;
+
+          a {
+            width: 100%;
+            text-align: center;
+          }
         }
       }
     }

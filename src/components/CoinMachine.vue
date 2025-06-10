@@ -38,110 +38,219 @@ const handleInsert = (coinKey: CoinKey) => {
 </script>
 
 <template>
-  <div class="cute-machine p-6 max-w-md mx-auto space-y-5">
-    <h2 class="text-2xl font-extrabold text-pink-500 flex items-center gap-2 font-cute">
-      <span>🧺</span> Laundromat Coin Machine
-    </h2>
+  <div class="receipt-machine">
+    <div class="receipt-section">
+      <div class="section-title">My Wallet</div>
+      <div class="wallet-coins">
+        <div v-for="(count, name) in myCoin" :key="name" class="coin-item">
+          <span class="coin-name">{{ name }}</span>
+          <span class="coin-count">{{ count }}</span>
+        </div>
+      </div>
+      <div class="wallet-total">
+        <span>Total Balance:</span>
+        <span class="total-amount">{{ myWallet.totalCoins }}</span>
+      </div>
+    </div>
 
-    <div>
-      <p class="font-semibold text-blue-500">My Wallet:</p>
-      <ul class="ml-4 flex gap-3">
-        <li
-          v-for="(count, name) in myCoin"
+    <div class="receipt-section">
+      <div class="section-title">Insert Coins</div>
+      <div class="coin-buttons">
+        <button
+          v-for="(value, name) in coin"
           :key="name"
-          class="bg-white/80 rounded-xl px-3 py-1 shadow font-cute text-sm flex items-center gap-1"
+          @click="handleInsert(name as CoinKey)"
+          :disabled="!coinMachineStore.canInsert || myCoin[name as CoinKey] <= 0"
+          class="insert-btn"
         >
-          <span>💰</span> {{ name }}: <span class="font-bold">{{ count }}</span>
-        </li>
-      </ul>
-      <p class="mt-2 font-bold text-yellow-600">Total: {{ myWallet.totalCoins }}</p>
+          <span class="coin-value">{{ value }}</span>
+          <span class="coin-label">{{ name }}</span>
+        </button>
+      </div>
     </div>
 
-    <div class="flex flex-wrap gap-3 mt-4">
-      <button
-        v-for="(value, name) in coin"
-        :key="name"
-        @click="handleInsert(name as CoinKey)"
-        :disabled="!coinMachineStore.canInsert || myCoin[name as CoinKey] <= 0"
-        class="bg-pink-200 text-pink-700 px-4 py-2 rounded-full shadow hover:bg-pink-300 disabled:opacity-40 font-cute transition"
-      >
-        Insert {{ name }} <span class="text-xs">({{ value }})</span>
-      </button>
+    <div class="receipt-section">
+      <div class="section-title">Transaction Details</div>
+      <div class="transaction-info">
+        <div class="info-row">
+          <span>Inserted Total:</span>
+          <span class="amount">{{ coinMachineStore.insertedCoinsTotal }}</span>
+        </div>
+        <div class="info-row">
+          <span>Inserted Coins:</span>
+          <span class="coins-list">
+            {{
+              coinMachineStore.insertedCoins.length
+                ? coinMachineStore.insertedCoins.join(', ')
+                : 'None'
+            }}
+          </span>
+        </div>
+        <div class="info-row">
+          <span>Required Amount:</span>
+          <span class="required">{{ props.price }}</span>
+        </div>
+      </div>
     </div>
 
-    <div class="bg-white/70 rounded-xl p-3 shadow">
-      <p>
-        <strong>Inserted Total:</strong>
-        <span class="text-blue-600">{{ coinMachineStore.insertedCoinsTotal }}</span>
-      </p>
-      <p>
-        <strong>Inserted Coins:</strong>
-        <span class="text-gray-700">
-          {{
-            coinMachineStore.insertedCoins.length
-              ? coinMachineStore.insertedCoins.join(', ')
-              : 'None'
-          }}
-        </span>
-      </p>
-    </div>
-
-    <div>
-      <label class="block font-semibold text-blue-400">Laundry Price</label>
-      <p class="border px-2 py-1 rounded bg-yellow-100 font-bold text-yellow-700 shadow-inner">
-        {{ props.price }}
-      </p>
-    </div>
-
-    <div v-if="coinMachineStore.requiredAmount > 0" class="text-red-500 font-cute text-center">
-      Not enough coins inserted.
+    <div v-if="coinMachineStore.requiredAmount > 0" class="receipt-footer">
+      <div class="warning-message">Please insert more coins to continue</div>
     </div>
   </div>
 </template>
 
-<style scoped>
-/* Faris comment: can move to global styles, move to local font folder src/assets/fonts */
-/* tailwind config font */
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@700&display=swap');
+<style lang="scss" scoped>
+.receipt-machine {
+  background: #fff;
+  border-radius: 1rem;
 
-.font-cute {
+  overflow: hidden;
   font-family: 'Baloo 2', cursive;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+
+  .receipt-section {
+    padding: 0.75rem;
+    border-bottom: 1px dashed #e5e7eb;
+
+    &:first-child {
+      border-top: none;
+    }
+
+    .section-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #4b5563;
+      margin-bottom: 0.5rem;
+    }
+
+    .wallet-coins {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.4rem;
+      margin-bottom: 0.5rem;
+
+      .coin-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.35rem 0.5rem;
+        background: #f3f4f6;
+        border-radius: 0.5rem;
+        font-size: 0.75rem;
+
+        .coin-name {
+          color: #4b5563;
+        }
+
+        .coin-count {
+          font-weight: 600;
+          color: #0078d4;
+        }
+      }
+    }
+
+    .wallet-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem;
+      background: #e5f6ff;
+      border-radius: 0.5rem;
+      font-size: 0.75rem;
+
+      .total-amount {
+        font-weight: 600;
+        color: #0078d4;
+      }
+    }
+
+    .coin-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.4rem;
+
+      .insert-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0.5rem;
+        background: #f3f4f6;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover:not(:disabled) {
+          background: #e5e7eb;
+          transform: translateY(-2px);
+        }
+
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .coin-value {
+          font-size: 1rem;
+          font-weight: 700;
+          color: #0078d4;
+        }
+
+        .coin-label {
+          font-size: 0.65rem;
+          color: #6b7280;
+          margin-top: 0.25rem;
+        }
+      }
+    }
+
+    .transaction-info {
+      .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.35rem 0;
+        font-size: 0.75rem;
+
+        .amount,
+        .required {
+          font-weight: 600;
+          color: #0078d4;
+        }
+
+        .coins-list {
+          color: #6b7280;
+          font-size: 0.65rem;
+          max-width: 60%;
+          text-align: right;
+          word-break: break-all;
+        }
+      }
+    }
+  }
+
+  .receipt-footer {
+    padding: 0.5rem;
+    text-align: center;
+    background: #fff3f3;
+
+    .warning-message {
+      color: #dc2626;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+  }
 }
 
-.cute-machine {
-  border-radius: 2rem;
-  border: 4px solid #fff;
-}
+@media (max-width: 480px) {
+  .receipt-machine {
+    max-width: 100%;
 
-/* Slip animation */
-.slip-enter-active {
-  animation: slip-in 0.7s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-}
-.slip-leave-active {
-  animation: slip-out 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-}
-@keyframes slip-in {
-  0% {
-    opacity: 0;
-    transform: translateY(-80px) scaleY(0.7) skewY(-8deg);
-    filter: blur(6px);
-  }
-  70% {
-    opacity: 1;
-    transform: translateY(8px) scaleY(1.05) skewY(2deg);
-    filter: blur(0px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scaleY(1) skewY(0deg);
-    filter: blur(0px);
-  }
-}
-@keyframes slip-out {
-  to {
-    opacity: 0;
-    transform: translateY(60px) scaleY(0.7) skewY(8deg);
-    filter: blur(4px);
+    .receipt-section {
+      padding: 0.6rem;
+    }
   }
 }
 </style>

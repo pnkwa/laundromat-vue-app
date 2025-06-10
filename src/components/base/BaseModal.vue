@@ -69,19 +69,14 @@ defineExpose({ openModal, closeModal })
       aria-hidden="true"
       class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full"
     >
-      <div class="relative p-4 w-full max-w-2xl max-h-full">
-        <div class="relative bg-white rounded-lg shadow-sm dark:bg-gray-700">
-          <div
-            class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-gray-200"
-          >
-            <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
-              {{ BaseModalprops.header ?? 'Modal Title' }}
-            </h3>
-            <button
-              @click="closeModal"
-              type="button"
-              class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-            >
+      <div class="relative p-4 w-full max-w-md max-h-full">
+        <div class="receipt-modal">
+          <div class="receipt-header">
+            <div class="receipt-title">
+              <h3 class="text-xl font-bold">{{ BaseModalprops.header ?? 'Receipt' }}</h3>
+              <div class="receipt-date">{{ new Date().toLocaleDateString() }}</div>
+            </div>
+            <button @click="closeModal" type="button" class="close-btn">
               <svg
                 class="w-3 h-3"
                 xmlns="http://www.w3.org/2000/svg"
@@ -100,31 +95,118 @@ defineExpose({ openModal, closeModal })
             </button>
           </div>
 
-          <div class="p-4 md:p-5 space-y-4">
-            <slot />
+          <div class="receipt-content">
+            <slot></slot>
           </div>
 
-          <div
-            v-if="BaseModalprops.leftButton || BaseModalprops.rightButton"
-            class="flex items-center p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600 justify-end"
-          >
-            <button
-              @click="closeModal"
-              type="button"
-              class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-            >
-              {{ BaseModalprops.leftButton ?? 'Cancel' }}
-            </button>
-            <button
-              @click="closeModal"
-              type="button"
-              class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
-            >
-              {{ BaseModalprops.rightButton ?? 'Confirm' }}
-            </button>
+          <div class="receipt-footer">
+            <div class="receipt-line"></div>
+            <div class="receipt-thank-you">Thank you for using CuCuWash!</div>
           </div>
         </div>
       </div>
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.receipt-modal {
+  background: #fff;
+  border-radius: 0.5rem;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+  }
+
+  .receipt-header {
+    padding: 1.5rem;
+    border-bottom: 1px dashed #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+
+    .receipt-title {
+      h3 {
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+      }
+
+      .receipt-date {
+        font-size: 0.875rem;
+        color: #6b7280;
+      }
+    }
+
+    .close-btn {
+      color: #9ca3af;
+      background: transparent;
+      border: none;
+      padding: 0.5rem;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        background: #f3f4f6;
+        color: #4b5563;
+      }
+    }
+  }
+
+  .receipt-content {
+    padding: 1.5rem;
+    background: #fafafa;
+    position: relative;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0.75rem;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: repeating-linear-gradient(
+        to bottom,
+        #e5e7eb,
+        #e5e7eb 1px,
+        transparent 1px,
+        transparent 8px
+      );
+    }
+  }
+
+  .receipt-footer {
+    padding: 1.5rem;
+    text-align: center;
+    background: #fff;
+
+    .receipt-line {
+      height: 1px;
+      background: repeating-linear-gradient(
+        to right,
+        #000,
+        #000 1px,
+        transparent 1px,
+        transparent 4px
+      );
+      margin-bottom: 1rem;
+    }
+
+    .receipt-thank-you {
+      color: #4b5563;
+      font-size: 0.875rem;
+      font-style: italic;
+    }
+  }
+}
+</style>

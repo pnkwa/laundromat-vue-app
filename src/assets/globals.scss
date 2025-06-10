@@ -2,7 +2,20 @@
 
 $laundry-bg-gradient: linear-gradient(135deg, #f8e1f4 0%, #e1f4f8 100%);
 $font-main: 'Quicksand', 'Baloo 2', cursive, sans-serif;
+$color-primary: #e17cb8;
+$text-color-secondary: #7b8fa1;
+$text-color-tertiary: #f0f0f0;
 $btn-gradient-primary: linear-gradient(90deg, #fbc2eb 0%, #a6c1ee 100%);
 $btn-gradient-secondary: linear-gradient(90deg, #e0c3fc 0%, #8ec5fc 100%);
 $btn-gradient-active: linear-gradient(90deg, #a1c4fd 0%, #c2e9fb 100%);
+$box-shadow: rgba(251, 194, 235, 0.3);
 $progress-bg: #f0f0f0;
+$min-height: calc(100vh - 60px);
+
+$color-blue: #65e0e8;
+$color-light: #dcfbfb;
+$color-grey: #b0b8c5;
+$color-green: #bcd070;
+$color-dark: #788d99;
+
+$borderW: 4px;
