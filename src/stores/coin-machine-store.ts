@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed, toRaw } from 'vue'
 import { coinMachineChange } from '@/helper/coin-machine-change'
-
+import { useMyCoinWallet } from './my-wallet-store'
+import { coinMappingKey } from '@/types/coin-types'
 export const useCoinMachineStore = defineStore('coin', () => {
   const insertedCoins = ref<number[]>([])
   const insertedCoinsTotal = ref(0)
@@ -9,7 +10,7 @@ export const useCoinMachineStore = defineStore('coin', () => {
   const totalChange = ref(0)
   const price = ref(0)
   const availableCoins = ref<number[]>([])
-
+  const myCoinWallet = useMyCoinWallet()
   const startTransaction = (targetPrice: number, coins: number[]) => {
     reset()
     price.value = targetPrice
@@ -20,6 +21,10 @@ export const useCoinMachineStore = defineStore('coin', () => {
 
   const canInsert = computed(() => insertedCoinsTotal.value < price.value)
 
+  const changeList = computed(() => {
+    return coinMachineChange(toRaw(insertedCoins.value), totalChange.value)
+  })
+
   const insertCoin = (value: number) => {
     if (!canInsert.value) return
     insertedCoins.value.push(value)
@@ -28,18 +33,13 @@ export const useCoinMachineStore = defineStore('coin', () => {
 
   const completeTransaction = () => {
     if (insertedCoinsTotal.value < price.value) return false
-    const change = insertedCoinsTotal.value - price.value
-    totalChange.value = change
+    totalChange.value = insertedCoinsTotal.value - price.value
 
-    const changeList = coinMachineChange(toRaw(insertedCoins.value), change)
-    if (changeList) {
-      changeCoins.value = Object.entries(changeList).flatMap(([coin, count]) =>
-        Array(Number(count)).fill(Number(coin)),
-      )
-    } else changeCoins.value = []
-
-    setTimeout(reset, 1000)
-    return changeList
+    if (changeList.value) {
+      for (const coin in changeList.value) {
+        myCoinWallet.addCoinToWallet(coinMappingKey[coin], changeList.value[coin] * +coin)
+      }
+    }
   }
 
   const reset = () => {
@@ -54,7 +54,7 @@ export const useCoinMachineStore = defineStore('coin', () => {
   return {
     insertedCoins,
     insertedCoinsTotal,
-    changeCoins,
+    changeList,
     totalChange,
     price,
     availableCoins,

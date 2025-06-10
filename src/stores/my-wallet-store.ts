@@ -43,25 +43,6 @@ export const useMyCoinWallet = defineStore('myCoin', () => {
     }
   }
 
-  const valueToCoinKey = Object.entries(coin).reduce(
-    (acc, [key, value]) => {
-      acc[value] = key as CoinKey
-      return acc
-    },
-    {} as Record<number, CoinKey>,
-  )
-
-  function addChangeToWallet(changeCoins: number[]) {
-    console.log('🚀 ~ addChangeToWallet ~ changeCoins:', changeCoins)
-    const myWallet = useMyCoinWallet()
-    changeCoins.forEach((value) => {
-      const coinKey = valueToCoinKey[value]
-      if (coinKey) {
-        myWallet.addCoinToWallet(coinKey, coin[coinKey])
-      }
-    })
-  }
-
   function removeCoinFromWallet(type: keyof CoinWallet, amount = coin[type]) {
     if (wallet.value[type] && wallet.value[type] >= amount) {
       wallet.value = {
@@ -81,7 +62,6 @@ export const useMyCoinWallet = defineStore('myCoin', () => {
     totalCoins,
     myWallet,
     addCoinToWallet,
-    addChangeToWallet,
     removeCoinFromWallet,
     resetWallet,
     numOfCoinWallet,

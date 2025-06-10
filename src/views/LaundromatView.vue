@@ -12,48 +12,41 @@ import {
 import { DotLottieVue, type DotLottieVueInstance } from '@lottiefiles/dotlottie-vue'
 import CoinMachine from '@/components/CoinMachine.vue'
 import { useCoinMachineStore } from '@/stores/coin-machine-store'
-import { useMyCoinWallet } from '@/stores/my-wallet-store'
+import { coinMappingKey } from '@/types/coin-types'
 
 const showModal = ref(false)
+const showChangeModal = ref(false)
 const hasStarted = ref(false)
 const selectedMode = ref<WashingModeKey>(NORMAL)
 const player = ref<DotLottieVueInstance | undefined>(undefined)
 const isPaused = ref(false)
+
+const coinMachineStore = useCoinMachineStore()
 const countdown = useCountdownWashing({
   onComplete: () => {
     player.value?.getDotLottieInstance()?.stop()
   },
 })
-const myWallet = useMyCoinWallet()
-
-const useCoinMachine = useCoinMachineStore()
 
 const pauseOrResumeLabel = computed(() =>
   countdown.isRunning.value ? 'Pause' : countdown.remaining.value > 0 ? 'Resume' : 'Pause',
 )
 const modePrice = computed(() => laundromatMode[selectedMode.value].price)
 const selectedModeObj = computed(() => laundromatMode[selectedMode.value])
-const coinChange = computed(() => useCoinMachine.changeCoins)
 
 function handleStart() {
   countdown.begin(laundromatMode[selectedMode.value].timeCount)
   player.value?.getDotLottieInstance()?.play()
   hasStarted.value = true
-  showModal.value = false
-  useCoinMachine.completeTransaction()
-  // Assuming coinChange.value is an array of numbers representing coin values (e.g., 1, 5, 10)
-  const coinValueToName = {
-    1: 'PENNY',
-    5: 'NICKEL',
-    10: 'DIME',
-  } as const
 
-  coinChange.value.forEach((value: number) => {
-    const coin = coinValueToName[value as keyof typeof coinValueToName]
-    if (coin) {
-      myWallet.addCoinToWallet(coin, 1)
-    }
-  })
+  showModal.value = false
+  coinMachineStore.completeTransaction()
+
+  if (Object.keys(coinMachineStore.changeList ?? {}).length > 0) {
+    setTimeout(() => {
+      showChangeModal.value = true
+    }, 500)
+  }
 }
 
 function pauseOrResume() {
@@ -68,10 +61,19 @@ function pauseOrResume() {
   }
 }
 
+function handleChangeModalClose() {
+  showChangeModal.value = false
+  setTimeout(() => {
+    coinMachineStore.reset()
+  }, 300)
+}
+
 watch(selectedMode, () => {
   if (!countdown.isRunning.value) {
     player.value?.getDotLottieInstance()?.stop()
+    hasStarted.value = false
   }
+  console.log(showModal.value)
 })
 
 const progress = computed(() => {
@@ -133,7 +135,12 @@ const progress = computed(() => {
       </div>
     </div>
 
-    <BaseModal v-model:isOpen="showModal" header="✨ Ready to Start?" class="cute-modal">
+    <BaseModal
+      v-if="showModal"
+      v-model:isOpen="showModal"
+      header="✨ Ready to Start?"
+      class="cute-modal"
+    >
       <div class="modal-content min-w-[320px]">
         <div class="flex flex-col items-center gap-4">
           <CoinMachine :price="modePrice" />
@@ -146,7 +153,7 @@ const progress = computed(() => {
         </div>
         <button
           @click="handleStart"
-          :disabled="countdown.isRunning.value"
+          :disabled="coinMachineStore.canInsert"
           class="cute-btn mt-7 w-full text-[1.13rem] flex items-center justify-center gap-2.5"
         >
           <span>🧼</span>
@@ -154,19 +161,33 @@ const progress = computed(() => {
         </button>
       </div>
     </BaseModal>
-    <div class="mt-6">
-      <h3 class="text-lg font-semibold text-[#0078d4]">Change Returned:</h3>
-      <ul class="list-disc ml-5 mt-2">
-        <li v-for="(amount, idx) in coinChange" :key="idx">{{ amount }}</li>
-      </ul>
-    </div>
+    <BaseModal
+      v-if="showModal === false && hasStarted"
+      v-model:isOpen="showChangeModal"
+      header="💰 Change Returned"
+      class="cute-modal"
+    >
+      <div class="flex flex-col items-center gap-4 min-w-[220px]">
+        <div class="text-lg text-green-700 font-bold mb-2">You received change:</div>
+        <ul class="flex gap-2">
+          <li
+            v-for="(count, coin) in coinMachineStore.changeList"
+            :key="coin"
+            class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full font-bold shadow"
+          >
+            {{ coinMappingKey[coin] }} x{{ count }}
+          </li>
+        </ul>
+        <div class="text-sm text-gray-600 mt-2">
+          Total Change: <strong class="text-blue-600">{{ coinMachineStore.totalChange }}</strong>
+        </div>
+        <button @click="handleChangeModalClose" class="cute-btn mt-4 w-full">OK</button>
+      </div>
+    </BaseModal>
   </div>
 </template>
-<!-- Faris comment: change to scss -->
-<style scoped>
-/* Faris comment: can move to global styles, move to local font folder src/assets/fonts */
-/* tailwind config font */
-@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@600&display=swap');
+<style lang="scss" scoped>
+@use '/src//assets/globals' as *;
 
 .laundromat-view {
   display: flex;
@@ -175,115 +196,115 @@ const progress = computed(() => {
   min-height: 100vh;
   justify-content: center;
   padding: 2rem;
-  background: linear-gradient(135deg, #f8e1f4 0%, #e1f4f8 100%);
-  font-family: 'Quicksand', sans-serif;
-}
+  background: $laundry-bg-gradient;
+  font-family: $font-main;
 
-.machine-card {
-  background: #fff;
-  border-radius: 2rem;
-  box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.08);
-  padding: 2.5rem 2rem 2rem 2rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 340px;
-  max-width: 95vw;
-}
+  .machine-card {
+    background: #fff;
+    border-radius: 2rem;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    padding: 2.5rem 2rem 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 340px;
+    max-width: 95vw;
 
-.progress-bar-bg {
-  width: 180px;
-  height: 12px;
-  background: #f0f0f0;
-  border-radius: 6px;
-  margin: 1rem 0 0.5rem 0;
-  overflow: hidden;
-  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.04);
-}
+    .progress-bar-bg {
+      width: 180px;
+      height: 12px;
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 6px;
+      margin: 1rem 0 0.5rem;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 
-.progress-bar-fg {
-  height: 100%;
-  background: linear-gradient(90deg, #a1c4fd 0%, #c2e9fb 100%);
-  border-radius: 6px 0 0 6px;
-  transition: width 0.4s cubic-bezier(0.4, 2, 0.6, 1);
-}
+      .progress-bar-fg {
+        height: 100%;
+        background: $btn-gradient-active;
+        border-radius: 6px 0 0 6px;
+        transition: width 0.4s cubic-bezier(0.4, 2, 0.6, 1);
+      }
+    }
 
-.btn-group {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1.5rem;
-}
+    .btn-group {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
 
-.cute-btn {
-  padding: 0.6rem 1.7rem;
-  font-weight: 700;
-  border: none;
-  border-radius: 1.5rem;
-  background: linear-gradient(90deg, #fbc2eb 0%, #a6c1ee 100%);
-  color: #444;
-  font-size: 1.1rem;
-  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.06);
-  cursor: pointer;
-  transition:
-    background 0.2s,
-    transform 0.1s,
-    box-shadow 0.2s;
-  outline: none;
-}
+    .mode-select {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
 
-.cute-btn.secondary {
-  background: linear-gradient(90deg, #e0c3fc 0%, #8ec5fc 100%);
-}
+      .cute-btn {
+        font-size: 1rem;
+        background: #f6faff;
+        color: #888;
+        border: 2px solid #e0e7ef;
+        transition:
+          background 0.2s,
+          color 0.2s,
+          border 0.2s;
 
-.cute-btn:active {
-  transform: scale(0.97);
-}
+        &.active {
+          background: $btn-gradient-active;
+          color: #0078d4;
+          border: 2px solid #a1c4fd;
+          box-shadow: 0 2px 8px rgba(161, 196, 253, 0.18);
+        }
+      }
+    }
+  }
 
-.cute-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+  .cute-btn {
+    padding: 0.6rem 1.7rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 1.5rem;
+    background: $btn-gradient-primary;
+    color: #444;
+    font-size: 1.1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    cursor: pointer;
+    transition:
+      background 0.2s,
+      transform 0.1s,
+      box-shadow 0.2s;
+    outline: none;
 
-.mode-select {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1.5rem;
-}
+    &.secondary {
+      background: $btn-gradient-secondary;
+    }
 
-.mode-select .cute-btn {
-  font-size: 1rem;
-  background: #f6faff;
-  color: #888;
-  border: 2px solid #e0e7ef;
-  transition:
-    background 0.2s,
-    color 0.2s,
-    border 0.2s;
-}
+    &:active {
+      transform: scale(0.97);
+    }
 
-.mode-select .cute-btn.active {
-  background: linear-gradient(90deg, #a1c4fd 0%, #c2e9fb 100%);
-  color: #0078d4;
-  border: 2px solid #a1c4fd;
-  box-shadow: 0 2px 8px 0 rgba(161, 196, 253, 0.18);
-}
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
 
-.start-btn {
-  margin-top: 1.5rem;
-  width: 100%;
-  padding: 0.9rem 0;
-  font-size: 1.15rem;
-  font-weight: bold;
-  background: linear-gradient(90deg, #fbc2eb 0%, #a6c1ee 100%);
-  color: #fff;
-  border: none;
-  border-radius: 1.5rem;
-  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08);
-  transition: background 0.2s;
-}
+  .start-btn {
+    margin-top: 1.5rem;
+    width: 100%;
+    padding: 0.9rem 0;
+    font-size: 1.15rem;
+    font-weight: bold;
+    background: $btn-gradient-active;
+    color: #fff;
+    border: none;
+    border-radius: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: background 0.2s;
 
-.start-btn:disabled {
-  background: #eee;
-  color: #aaa;
+    &:disabled {
+      background: #eee;
+      color: #aaa;
+    }
+  }
 }
 </style>

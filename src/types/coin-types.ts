@@ -18,3 +18,9 @@ export interface MyCoinWalletType {
   wallet: CoinWallet
   totalCoins: number
 }
+
+export const coinMappingKey: Record<number, CoinKey> = {
+  1: 'PENNY',
+  5: 'NICKEL',
+  10: 'DIME',
+}

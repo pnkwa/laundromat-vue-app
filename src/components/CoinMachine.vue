@@ -96,16 +96,6 @@ const handleInsert = (coinKey: CoinKey) => {
     <div v-if="coinMachineStore.requiredAmount > 0" class="text-red-500 font-cute text-center">
       Not enough coins inserted.
     </div>
-
-    <div
-      v-else-if="coinMachineStore.changeCoins.length > 0"
-      class="text-green-600 font-cute space-y-1 text-center"
-    >
-      <p>
-        <strong>Change ({{ coinMachineStore.totalChange }}):</strong>
-      </p>
-      <p>{{ coinMachineStore.changeCoins.join(', ') }}</p>
-    </div>
   </div>
 </template>
 
