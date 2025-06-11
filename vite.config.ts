@@ -9,6 +9,14 @@ import svgLoader from 'vite-svg-loader'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [vue(), vueDevTools(), tailwindcss(), svgLoader()],
+  css: {
+    preprocessorOptions: {
+      scss: {
+        // Faris comment: global variable import scss
+        additionalData: `@use '/src/assets/globals' as *;`,
+      },
+    },
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),

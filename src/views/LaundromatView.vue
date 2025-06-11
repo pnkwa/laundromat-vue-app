@@ -145,8 +145,11 @@ const progress = computed(() => {
       </div>
     </div>
 
+    <!-- Faris comment: use BaseModal -->
     <div class="modal-overlay" v-if="showModal" @click.self="showModal = false">
       <div class="modal-content">
+        <!-- Faris comment: refactor move code coin machine -->
+
         <div class="machine-info">
           <div class="mode-info">
             <span class="mode-label">Selected Mode:</span>
@@ -158,6 +161,7 @@ const progress = computed(() => {
           </div>
         </div>
 
+        <!-- Faris comment: refactor move code coin machine -->
         <CoinMachine :price="modePrice" />
 
         <div class="action-section">

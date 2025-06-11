@@ -29,7 +29,6 @@ const myWallet = useMyCoinWallet()
 </template>
 
 <style lang="scss" scoped>
-@use '/src/assets/globals' as *;
 .navbar {
   background: $btn-gradient-primary;
   padding: 1rem 2rem;

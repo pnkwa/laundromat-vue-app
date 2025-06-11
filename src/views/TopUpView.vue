@@ -49,8 +49,6 @@ const handleAddCoin = (coinKey: CoinKey) => {
 </template>
 
 <style lang="scss" scoped>
-@use '/src/assets/globals' as *;
-
 .topup-view {
   min-height: $min-height;
   display: flex;

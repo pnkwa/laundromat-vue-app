@@ -11,8 +11,6 @@ defineProps<{
 </template>
 
 <style lang="scss" scoped>
-@use '/src/assets/globals' as *;
-
 .wave-container {
   position: fixed;
   bottom: 0;

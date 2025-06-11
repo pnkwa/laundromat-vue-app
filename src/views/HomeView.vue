@@ -2,6 +2,7 @@
 import homepageImage from '@/assets/homepage-image.png'
 import BlobButton from '@/components/BlobButton.vue'
 
+// Faris commit: use computed
 const bubbles = Array.from({ length: 20 }, () => {
   const size = 10 + Math.random() * 30
   const left = Math.random() * 100
@@ -25,8 +26,10 @@ const bubbles = Array.from({ length: 20 }, () => {
         <h1 class="title">Welcome to</h1>
         <h1 class="logo">CuCuWash</h1>
       </div>
+      <!-- Faris comment: renaming to description because desc meaning Descending -->
       <p class="desc">Enjoy a cozy laundry experience.<br /></p>
       <div class="btns">
+        <!-- Faris comment: path url use case text kabab -->
         <BlobButton text="Top Up Coins" @click="$router.push('/TopUp')" />
         <BlobButton text="Start Washing" @click="$router.push('/Laundromat')" />
       </div>
@@ -38,8 +41,6 @@ const bubbles = Array.from({ length: 20 }, () => {
   </div>
 </template>
 <style lang="scss" scoped>
-@use '/src/assets/globals' as *;
-
 .homepage {
   position: relative;
   overflow: hidden;
@@ -93,17 +94,20 @@ const bubbles = Array.from({ length: 20 }, () => {
     max-width: 800px;
     width: 90%;
     margin: 0 auto;
-
-    .main-title {
+    // Faris comment: parent css selector any where
+    & > .main-title {
       display: flex;
       align-items: center;
-      font-size: 3.5rem;
-      margin-top: 2rem;
 
-      @media (max-width: 768px) {
-        font-size: 2.5rem;
-        flex-direction: column;
-        gap: 0.5rem;
+      font-size: 2.5rem;
+      flex-direction: column;
+      gap: 0.5rem;
+
+      // Faris comment: @media max-width to min-width from support mobile size first
+      @media (min-width: 768px) {
+        font-size: 3.5rem;
+        flex-direction: row;
+        margin-top: 2rem;
       }
 
       .title {
