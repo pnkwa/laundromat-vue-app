@@ -294,7 +294,7 @@ const progress = computed(() => {
       .progress-bar-bg {
         width: 100%;
         height: 8px;
-        background: $progress-bg;
+        background: #fff;
         border-radius: 4px;
         overflow: hidden;
 

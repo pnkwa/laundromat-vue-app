@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
 import { useMyCoinWallet } from '@/stores/my-wallet-store'
+import IconWallet from '@/assets/svg/icon-my-wallet.svg'
 
 const myWallet = useMyCoinWallet()
 </script>
@@ -17,7 +18,7 @@ const myWallet = useMyCoinWallet()
           <RouterLink to="/TopUp" exact-active-class="active-link">Top Up</RouterLink>
         </nav>
         <div class="total-coins">
-          <img src="/assets/svg/icon-my-wallet.svg" alt="Wallet" class="coin-icon" />
+          <IconWallet class="coin-icon" />
           <span class="total-amount">{{ myWallet.totalCoins }}</span>
         </div>
       </div>
@@ -28,8 +29,9 @@ const myWallet = useMyCoinWallet()
 </template>
 
 <style lang="scss" scoped>
+@use '/src/assets/globals' as *;
 .navbar {
-  background: linear-gradient(90deg, #fbc2eb 0%, #a6c1ee 100%);
+  background: $btn-gradient-primary;
   padding: 1rem 2rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   position: sticky;

@@ -118,7 +118,6 @@ const bubbles = Array.from({ length: 20 }, () => {
         padding: 4px 12px;
         border-radius: 40px;
         width: fit-content;
-        font-weight: 700;
         margin-left: 10px;
 
         @media (max-width: 768px) {
