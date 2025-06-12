@@ -40,7 +40,6 @@ defineProps<{
 
 <style lang="scss" scoped>
 @use 'sass:math';
-@use '/src/assets/globals' as *;
 
 .blob-btn {
   $numOfBlobs: 4;

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, toRaw } from 'vue'
 import BaseModal from '@/components/base/BaseModal.vue'
 import CountdownLabel from '@/components/base/CountdownLabel.vue'
 import WaveAnimation from '@/components/WaveAnimation.vue'
@@ -13,8 +13,9 @@ import {
 } from '@/types/washing-machine-types'
 import { DotLottieVue, type DotLottieVueInstance } from '@lottiefiles/dotlottie-vue'
 import CoinMachine from '@/components/CoinMachine.vue'
-import { useCoinMachineStore } from '@/stores/coin-machine-store'
 import { coinMappingKey } from '@/types/coin-types'
+import { coinMachineChange } from '@/helper/coin-machine-change'
+import { useMyCoinWallet } from '@/stores/my-wallet-store'
 
 const showModal = ref(false)
 const showChangeModal = ref(false)
@@ -22,8 +23,13 @@ const hasStarted = ref(false)
 const selectedMode = ref<WashingModeKey>(NORMAL)
 const player = ref<DotLottieVueInstance | undefined>(undefined)
 const isPaused = ref(false)
+const changeCoins = ref<number[]>([])
+const totalChange = ref(0)
+const insertedCoins = ref<number[]>([])
+const insertedCoinsTotal = ref(0)
 
-const coinMachineStore = useCoinMachineStore()
+const myCoinWallet = useMyCoinWallet()
+
 const countdown = useCountdownWashing({
   onComplete: () => {
     player.value?.getDotLottieInstance()?.stop()
@@ -34,12 +40,32 @@ const pauseOrResumeLabel = computed(() =>
   countdown.isRunning.value ? 'Pause' : countdown.remaining.value > 0 ? 'Resume' : 'Pause',
 )
 const modePrice = computed(() => laundromatMode[selectedMode.value].price)
-const selectedModeObj = computed(() => laundromatMode[selectedMode.value])
-
+const selectedModeLabel = computed(() => laundromatMode[selectedMode.value].label)
 const showWave = computed(() => countdown.isRunning.value && !isPaused.value)
+const changeList = computed(() => {
+  return coinMachineChange(toRaw(insertedCoins.value), totalChange.value)
+})
+
+const completeTransaction = () => {
+  if (insertedCoinsTotal.value < modePrice.value) return false
+  totalChange.value = insertedCoinsTotal.value - modePrice.value
+
+  if (changeList.value) {
+    for (const coin in changeList.value) {
+      myCoinWallet.addCoinToWallet(coinMappingKey[coin], changeList.value[coin] * +coin)
+    }
+  }
+}
+
+const reset = () => {
+  insertedCoins.value = []
+  insertedCoinsTotal.value = 0
+  changeCoins.value = []
+  totalChange.value = 0
+}
 
 function handleStart() {
-  if (coinMachineStore.insertedCoinsTotal < modePrice.value) return
+  if (insertedCoinsTotal.value < modePrice.value) return
 
   const duration = laundromatMode[selectedMode.value].timeCount
   countdown.begin(duration)
@@ -47,13 +73,20 @@ function handleStart() {
   hasStarted.value = true
 
   showModal.value = false
-  coinMachineStore.completeTransaction()
+  completeTransaction()
 
-  if (Object.keys(coinMachineStore.changeList ?? {}).length > 0) {
+  if (Object.keys(changeList.value ?? {}).length > 0) {
     setTimeout(() => {
       showChangeModal.value = true
     }, 500)
   }
+}
+
+function handleChangeModalClose() {
+  showChangeModal.value = false
+  setTimeout(() => {
+    reset()
+  }, 300)
 }
 
 function pauseOrResume() {
@@ -67,14 +100,6 @@ function pauseOrResume() {
     isPaused.value = false
   }
 }
-
-function handleChangeModalClose() {
-  showChangeModal.value = false
-  setTimeout(() => {
-    coinMachineStore.reset()
-  }, 300)
-}
-
 watch(selectedMode, () => {
   if (!countdown.isRunning.value) {
     player.value?.getDotLottieInstance()?.stop()
@@ -88,6 +113,11 @@ const progress = computed(() => {
   const elapsed = total - remaining
   return total > 0 ? (elapsed / total) * 100 : 0
 })
+
+const onCoinInserted = (coins: number[], total: number) => {
+  insertedCoins.value = coins
+  insertedCoinsTotal.value = total
+}
 </script>
 
 <template>
@@ -145,32 +175,16 @@ const progress = computed(() => {
       </div>
     </div>
 
-    <div class="modal-overlay" v-if="showModal" @click.self="showModal = false">
+    <BaseModal v-if="showModal" v-model:isOpen="showModal">
       <div class="modal-content">
-        <div class="machine-info">
-          <div class="mode-info">
-            <span class="mode-label">Selected Mode:</span>
-            <span class="mode-value">{{ selectedModeObj.label }}</span>
-          </div>
-          <div class="price-info">
-            <span class="price-label">Price:</span>
-            <span class="price-value">{{ modePrice }} coins</span>
-          </div>
-        </div>
-
-        <CoinMachine :price="modePrice" />
-
-        <div class="action-section">
-          <button
-            @click="handleStart"
-            :disabled="coinMachineStore.insertedCoinsTotal < modePrice"
-            class="start-btn"
-          >
-            <span>Start Washing</span>
-          </button>
-        </div>
+        <CoinMachine
+          :price="modePrice"
+          :selectedModeLabel="selectedModeLabel"
+          @coinInserted="onCoinInserted"
+          @start="handleStart"
+        />
       </div>
-    </div>
+    </BaseModal>
 
     <BaseModal
       v-if="showModal === false && hasStarted"
@@ -185,7 +199,7 @@ const progress = computed(() => {
         </div>
 
         <div class="change-list">
-          <div v-for="(count, coin) in coinMachineStore.changeList" :key="coin" class="change-item">
+          <div v-for="(count, coin) in changeList" :key="coin" class="change-item">
             <span class="coin-type">{{ coinMappingKey[coin] }}</span>
             <span class="coin-count">x{{ count }}</span>
           </div>
@@ -193,7 +207,7 @@ const progress = computed(() => {
 
         <div class="total-change">
           <span class="total-label">Total Change:</span>
-          <span class="total-value">{{ coinMachineStore.totalChange }} coins</span>
+          <span class="total-value">{{ totalChange }} coins</span>
         </div>
 
         <button @click="handleChangeModalClose" class="close-btn">Got it!</button>
@@ -211,33 +225,34 @@ const progress = computed(() => {
   align-items: center;
   min-height: $min-height;
   justify-content: center;
-  padding: 2rem;
+  padding: 1rem;
   background: $laundry-bg-gradient;
   font-family: $font-main;
   position: relative;
   overflow: hidden;
 
-  @media (max-width: 768px) {
-    padding: 1rem;
+  @media (min-width: 768px) {
+    padding: 2rem;
   }
 
   .machine-content {
     position: relative;
     z-index: 2;
     display: flex;
-    gap: 4rem;
+    gap: 1rem;
     align-items: center;
     justify-content: center;
     width: 100%;
     max-width: 1200px;
+    flex-direction: column;
 
-    @media (max-width: 1024px) {
+    @media (min-width: 1024px) {
       gap: 2rem;
     }
 
-    @media (max-width: 768px) {
-      flex-direction: column;
-      gap: 1rem;
+    @media (min-width: 768px) {
+      flex-direction: row;
+      gap: 4rem;
     }
 
     .right-sec {
@@ -246,7 +261,7 @@ const progress = computed(() => {
       justify-content: center;
       align-items: center;
 
-      @media (max-width: 768px) {
+      @media (min-width: 768px) {
         width: 100%;
         max-width: 400px;
       }
@@ -255,22 +270,22 @@ const progress = computed(() => {
         width: 100%;
         height: auto;
         aspect-ratio: 1;
-        max-width: 500px;
-        max-height: 500px;
+        max-width: 280px;
+        max-height: 280px;
 
-        @media (max-width: 1024px) {
-          max-width: 450px;
-          max-height: 450px;
-        }
-
-        @media (max-width: 768px) {
+        @media (min-width: 1024px) {
           max-width: 350px;
           max-height: 350px;
         }
 
-        @media (max-width: 480px) {
-          max-width: 280px;
-          max-height: 280px;
+        @media (min-width: 768px) {
+          max-width: 450px;
+          max-height: 450px;
+        }
+
+        @media (min-width: 480px) {
+          max-width: 500px;
+          max-height: 500px;
         }
       }
     }
@@ -310,10 +325,11 @@ const progress = computed(() => {
         display: flex;
         gap: 1rem;
         width: 100%;
-        justify-content: center;
+        flex-direction: column;
 
-        @media (max-width: 480px) {
-          flex-direction: column;
+        @media (min-width: 480px) {
+          flex-direction: row;
+          justify-content: center;
         }
       }
 
@@ -321,14 +337,15 @@ const progress = computed(() => {
         display: flex;
         gap: 1rem;
         width: 100%;
-        justify-content: center;
+        flex-direction: column;
 
-        @media (max-width: 480px) {
-          flex-direction: column;
+        @media (min-width: 480px) {
+          justify-content: center;
+          flex-direction: row;
+          width: 50%;
         }
 
         .btn {
-          font-size: 1rem;
           background: #f6faff;
           color: #888;
           border: 2px solid #e0e7ef;
@@ -336,9 +353,10 @@ const progress = computed(() => {
             background 0.2s,
             color 0.2s,
             border 0.2s;
+          width: 100%;
 
-          @media (max-width: 480px) {
-            width: 100%;
+          @media (min-width: 480px) {
+            font-size: 1rem;
           }
 
           &.active {
@@ -353,13 +371,13 @@ const progress = computed(() => {
   }
 
   .btn {
-    padding: 0.6rem 1.7rem;
+    padding: 0.8rem;
     font-weight: 700;
     border: none;
     border-radius: 1.5rem;
     background: $btn-gradient-primary;
     color: #444;
-    font-size: 1.1rem;
+    font-size: 1rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     cursor: pointer;
     transition:
@@ -368,10 +386,10 @@ const progress = computed(() => {
       box-shadow 0.2s;
     outline: none;
 
-    @media (max-width: 480px) {
+    @media (min-width: 480px) {
       width: 100%;
-      padding: 0.8rem;
-      font-size: 1rem;
+      padding: 0.6rem 1.7rem;
+      font-size: 1.5rem;
     }
 
     &.secondary {
@@ -384,38 +402,6 @@ const progress = computed(() => {
 
     &:disabled {
       opacity: 0.5;
-      cursor: not-allowed;
-    }
-  }
-
-  .start-btn {
-    margin-top: 1.5rem;
-    width: 100%;
-    padding: 0.9rem 0;
-    font-size: 1.15rem;
-    font-weight: bold;
-    background: $btn-gradient-active;
-    color: #fff;
-    border: none;
-    border-radius: 1.5rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    transition: all 0.2s ease;
-    cursor: pointer;
-
-    &:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      background: linear-gradient(90deg, #8ab4f8 0%, #b0e0f8 100%);
-    }
-
-    &:active:not(:disabled) {
-      transform: translateY(0);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    }
-
-    &:disabled {
-      background: #eee;
-      color: #aaa;
       cursor: not-allowed;
     }
   }
@@ -438,112 +424,6 @@ const progress = computed(() => {
   @media (max-width: 768px) {
     padding: 1rem;
     align-items: center;
-  }
-}
-
-.modal-content {
-  background: white;
-  border-radius: 1rem;
-  width: 90%;
-  height: 90dvh;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
-  position: relative;
-  margin: 0 auto;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
-
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 3px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 3px;
-  }
-
-  &::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
-  }
-
-  .close-btn {
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    color: #666;
-    cursor: pointer;
-    padding: 0.25rem 0.5rem;
-    line-height: 1;
-    border-radius: 0.25rem;
-    transition: all 0.2s ease;
-
-    &:hover {
-      background: #f3f4f6;
-      color: #333;
-    }
-  }
-
-  .machine-info {
-    background: #f8f9fa;
-    border-radius: 0.75rem;
-    padding: 0.75rem;
-    margin-bottom: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    background: white;
-
-    @media (max-width: 480px) {
-      padding: 0.5rem;
-      margin-bottom: 0.75rem;
-    }
-
-    .mode-info,
-    .price-info {
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-
-      .mode-label,
-      .price-label {
-        font-size: 0.75rem;
-        color: #6b7280;
-      }
-
-      .mode-value,
-      .price-value {
-        font-weight: 600;
-        color: #1f2937;
-        font-size: 0.9rem;
-      }
-
-      .price-value {
-        color: #0078d4;
-      }
-    }
-  }
-
-  .action-section {
-    margin-top: auto;
-    padding: 1rem;
-    position: sticky;
-    bottom: 0;
-    z-index: 1;
-    background: white;
-    border-top: 1px solid #e5e7eb;
   }
 }
 
@@ -580,7 +460,6 @@ const progress = computed(() => {
     margin-bottom: 1rem;
     position: sticky;
     top: 0;
-    background: white;
     padding-bottom: 0.5rem;
     z-index: 1;
 

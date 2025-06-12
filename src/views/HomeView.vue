@@ -1,18 +1,21 @@
 <script setup lang="ts">
 import homepageImage from '@/assets/homepage-image.png'
 import BlobButton from '@/components/BlobButton.vue'
+import { computed } from 'vue'
 
-const bubbles = Array.from({ length: 20 }, () => {
-  const size = 10 + Math.random() * 30
-  const left = Math.random() * 100
-  const delay = -6 * Math.random()
-  return {
-    width: `${size}px`,
-    height: `${size}px`,
-    left: `${left}%`,
-    animationDelay: `${delay}s`,
-  }
-})
+const bubbles = computed(() =>
+  Array.from({ length: 20 }, () => {
+    const size = 10 + Math.random() * 30
+    const left = Math.random() * 100
+    const delay = -6 * Math.random()
+    return {
+      width: `${size}px`,
+      height: `${size}px`,
+      left: `${left}%`,
+      animationDelay: `${delay}s`,
+    }
+  }),
+)
 </script>
 
 <template>
@@ -25,7 +28,7 @@ const bubbles = Array.from({ length: 20 }, () => {
         <h1 class="title">Welcome to</h1>
         <h1 class="logo">CuCuWash</h1>
       </div>
-      <p class="desc">Enjoy a cozy laundry experience.<br /></p>
+      <p class="description">Enjoy a cozy laundry experience.<br /></p>
       <div class="btns">
         <BlobButton text="Top Up Coins" @click="$router.push('/TopUp')" />
         <BlobButton text="Start Washing" @click="$router.push('/Laundromat')" />
@@ -38,8 +41,6 @@ const bubbles = Array.from({ length: 20 }, () => {
   </div>
 </template>
 <style lang="scss" scoped>
-@use '/src/assets/globals' as *;
-
 .homepage {
   position: relative;
   overflow: hidden;
@@ -89,20 +90,21 @@ const bubbles = Array.from({ length: 20 }, () => {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 2rem;
+    margin-top: 0.5rem;
     max-width: 800px;
     width: 90%;
     margin: 0 auto;
 
-    .main-title {
+    & > .main-title {
       display: flex;
       align-items: center;
-      font-size: 3.5rem;
+      font-size: 2rem;
       margin-top: 2rem;
+      gap: 0.5rem;
 
-      @media (max-width: 768px) {
-        font-size: 2.5rem;
-        flex-direction: column;
+      @media (min-width: 768px) {
+        font-size: 3.5rem;
+        flex-direction: row;
         gap: 0.5rem;
       }
 
@@ -114,20 +116,20 @@ const bubbles = Array.from({ length: 20 }, () => {
       .logo {
         color: $color-light;
         background-color: $color-blue;
-        border: 6px solid $color-blue;
+        border: 4px solid $color-blue;
         padding: 4px 12px;
         border-radius: 40px;
         width: fit-content;
-        margin-left: 10px;
+        margin-left: 0px;
 
-        @media (max-width: 768px) {
-          margin-left: 0;
-          border-width: 4px;
+        @media (min-width: 768px) {
+          margin-left: 10px;
+          border-width: 6px;
         }
       }
     }
 
-    .desc {
+    .description {
       font-size: 1.1rem;
       margin-top: 1rem;
       color: $color-dark;
@@ -136,15 +138,16 @@ const bubbles = Array.from({ length: 20 }, () => {
 
     .btns {
       display: flex;
-      gap: 1.5rem;
+      gap: 1rem;
       justify-content: center;
       margin: 2rem 0;
+      flex-direction: column;
+      max-width: 600px;
 
-      @media (max-width: 768px) {
-        flex-direction: column;
-        gap: 1rem;
+      @media (min-width: 768px) {
+        flex-direction: row;
+        gap: 1.5rem;
         width: 100%;
-        max-width: 300px;
       }
 
       :deep(.blob-btn) {
@@ -153,7 +156,7 @@ const bubbles = Array.from({ length: 20 }, () => {
         font-size: 1.2rem;
         padding: 0.8rem 1.5rem;
 
-        @media (max-width: 768px) {
+        @media (min-width: 768px) {
           width: 100%;
         }
       }

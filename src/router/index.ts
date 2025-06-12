@@ -6,7 +6,6 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      // Faris comment: route level code-splitting
       component: () => import('../views/HomeView.vue'),
     },
     {
@@ -15,8 +14,8 @@ const router = createRouter({
       component: () => import('../views/LaundromatView.vue'),
     },
     {
-      path: '/topup',
-      name: 'topup',
+      path: '/top-up',
+      name: 'top-up',
       component: () => import('../views/TopUpView.vue'),
     },
   ],

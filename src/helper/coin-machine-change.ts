@@ -2,7 +2,7 @@ export function coinMachineChange(
   coins: number[],
   change: number,
 ): Record<number, number> | undefined {
-  const sortedCoins = [...new Set(coins)].sort((a, b) => b - a) // Unique, descending
+  const sortedCoins = [...new Set(coins)].sort((a, b) => b - a)
   const result: Record<number, number> = {}
 
   for (const coin of sortedCoins) {
@@ -16,6 +16,4 @@ export function coinMachineChange(
   if (change === 0) {
     return result
   }
-
-  return undefined
 }

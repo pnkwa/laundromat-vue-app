@@ -14,8 +14,8 @@ const myWallet = useMyCoinWallet()
       <div class="navbar-right">
         <nav class="navbar-links">
           <RouterLink to="/" exact-active-class="active-link">Home</RouterLink>
-          <RouterLink to="/Laundromat" exact-active-class="active-link">Laundromat</RouterLink>
-          <RouterLink to="/TopUp" exact-active-class="active-link">Top Up</RouterLink>
+          <RouterLink to="/laundromat" exact-active-class="active-link">Laundromat</RouterLink>
+          <RouterLink to="/top-up" exact-active-class="active-link">Top Up</RouterLink>
         </nav>
         <div class="total-coins">
           <IconWallet class="coin-icon" />
@@ -29,21 +29,19 @@ const myWallet = useMyCoinWallet()
 </template>
 
 <style lang="scss" scoped>
-@use '/src/assets/globals' as *;
 .navbar {
   background: $btn-gradient-primary;
-  padding: 1rem 2rem;
+  padding: 1rem 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   position: sticky;
   top: 0;
   z-index: 100;
 
-  .navbar-wrapper {
+  & > .navbar-wrapper {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    max-width: 1080px;
-    margin: 0 auto;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
 
     .navbar-logo {
       font-family: 'Baloo 2', cursive;
@@ -55,36 +53,19 @@ const myWallet = useMyCoinWallet()
 
     .navbar-right {
       display: flex;
-      align-items: center;
-      gap: 2rem;
-
-      .total-coins {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        background: rgba(255, 255, 255, 0.2);
-        padding: 0.5rem 1rem;
-        border-radius: 2rem;
-        backdrop-filter: blur(4px);
-
-        .coin-icon {
-          width: 20px;
-          height: 20px;
-          filter: invert(1) brightness(1.2);
-        }
-
-        .total-amount {
-          font-weight: 600;
-          color: #fff;
-          font-size: 1.1rem;
-        }
-      }
+      flex-direction: column;
+      width: 100%;
+      gap: 1rem;
 
       .navbar-links {
         display: flex;
-        gap: 1.5rem;
+        flex-direction: column;
+        width: 100%;
+        gap: 0.75rem;
 
         a {
+          width: 100%;
+          text-align: center;
           font-size: 1rem;
           font-weight: 600;
           color: #fff;
@@ -105,33 +86,58 @@ const myWallet = useMyCoinWallet()
           }
         }
       }
+
+      .total-coins {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        backdrop-filter: blur(4px);
+
+        .coin-icon {
+          width: 20px;
+          height: 20px;
+          filter: invert(1) brightness(1.2);
+        }
+
+        .total-amount {
+          font-weight: 600;
+          color: #fff;
+          font-size: 1.1rem;
+        }
+      }
     }
   }
 
-  @media (max-width: 768px) {
+  @media (min-width: 768px) {
     .navbar-wrapper {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.75rem;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1080px;
+      margin: 0 auto;
 
       .navbar-right {
-        flex-direction: column;
-        width: 100%;
-        gap: 1rem;
-
-        .total-coins {
-          width: 100%;
-          justify-content: center;
-        }
+        flex-direction: row;
+        align-items: center;
+        width: auto;
+        gap: 2rem;
 
         .navbar-links {
-          flex-direction: column;
-          width: 100%;
+          flex-direction: row;
+          width: auto;
 
           a {
-            width: 100%;
-            text-align: center;
+            width: auto;
+            text-align: left;
           }
+        }
+
+        .total-coins {
+          justify-content: flex-start;
         }
       }
     }
