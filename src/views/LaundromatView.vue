@@ -14,8 +14,6 @@ import {
 import { DotLottieVue, type DotLottieVueInstance } from '@lottiefiles/dotlottie-vue'
 import CoinMachine from '@/components/CoinMachine.vue'
 import { coinMappingKey } from '@/types/coin-types'
-import { coinMachineChange } from '@/helper/coin-machine-change'
-import { useMyCoinWallet } from '@/stores/my-wallet-store'
 
 const showModal = ref(false)
 const showChangeModal = ref(false)
@@ -27,8 +25,6 @@ const changeCoins = ref<number[]>([])
 const totalChange = ref(0)
 const insertedCoins = ref<number[]>([])
 const insertedCoinsTotal = ref(0)
-
-const myCoinWallet = useMyCoinWallet()
 
 const countdown = useCountdownWashing({
   onComplete: () => {
@@ -42,20 +38,7 @@ const pauseOrResumeLabel = computed(() =>
 const modePrice = computed(() => laundromatMode[selectedMode.value].price)
 const selectedModeLabel = computed(() => laundromatMode[selectedMode.value].label)
 const showWave = computed(() => countdown.isRunning.value && !isPaused.value)
-const changeList = computed(() => {
-  return coinMachineChange(toRaw(insertedCoins.value), totalChange.value)
-})
-
-const completeTransaction = () => {
-  if (insertedCoinsTotal.value < modePrice.value) return false
-  totalChange.value = insertedCoinsTotal.value - modePrice.value
-
-  if (changeList.value) {
-    for (const coin in changeList.value) {
-      myCoinWallet.addCoinToWallet(coinMappingKey[coin], changeList.value[coin] * +coin)
-    }
-  }
-}
+const changeList = ref()
 
 const reset = () => {
   insertedCoins.value = []
@@ -64,17 +47,15 @@ const reset = () => {
   totalChange.value = 0
 }
 
-function handleStart() {
-  if (insertedCoinsTotal.value < modePrice.value) return
-
+function handleStart(changeCoinList: Record<number, number>) {
   const duration = laundromatMode[selectedMode.value].timeCount
   countdown.begin(duration)
   player.value?.getDotLottieInstance()?.play()
   hasStarted.value = true
 
   showModal.value = false
-  completeTransaction()
 
+  changeList.value = changeCoinList
   if (Object.keys(changeList.value ?? {}).length > 0) {
     setTimeout(() => {
       showChangeModal.value = true

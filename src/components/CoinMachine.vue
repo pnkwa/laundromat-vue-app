@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 // import { useCoinMachineStore } from '@/stores/coin-machine-store'
+import { coinMachineChange } from '@/helper/coin-machine-change'
 import { useMyCoinWallet } from '@/stores/my-wallet-store'
-import { coin, type CoinKey } from '@/types/coin-types'
-import { watch, ref, computed } from 'vue'
+import { coin, coinMappingKey, type CoinKey } from '@/types/coin-types'
+import { watch, ref, computed, toRaw } from 'vue'
 
 const props = defineProps<{
   price: number
@@ -16,20 +17,34 @@ const modePrice = ref(0)
 const insertedCoins = ref<number[]>([])
 const insertedCoinsTotal = ref(0)
 const availableCoins = ref<number[]>([])
+const totalChange = ref(0)
 
 const requiredAmount = computed(() => Math.max(modePrice.value - insertedCoinsTotal.value, 0))
 const canInsert = computed(() => insertedCoinsTotal.value < modePrice.value)
+const changeList = computed(() => {
+  return coinMachineChange(toRaw(insertedCoins.value), totalChange.value)
+})
 
 const emit = defineEmits<{
-  (e: 'coinInserted', insertedCoins: number[], insertedCoinsTotal: number): void
-  (e: 'start'): void
+  (e: 'start', changelist: Record<number, number>): void
 }>()
 
 const insertCoin = (value: number) => {
   if (!canInsert.value) return
   insertedCoins.value.push(value)
   insertedCoinsTotal.value += value
-  emit('coinInserted', insertedCoins.value, insertedCoinsTotal.value)
+}
+
+const completeTransaction = () => {
+  if (insertedCoinsTotal.value < modePrice.value) return false
+  totalChange.value = insertedCoinsTotal.value - modePrice.value
+
+  if (changeList.value) {
+    for (const coin in changeList.value) {
+      myWallet.addCoinToWallet(coinMappingKey[coin], changeList.value[coin] * +coin)
+    }
+    emit('start', changeList.value)
+  }
 }
 
 const handleInsert = (coinKey: CoinKey) => {
@@ -139,7 +154,11 @@ watch(
     </div>
 
     <div class="action-section">
-      <button @click="emit('start')" :disabled="insertedCoinsTotal < modePrice" class="start-btn">
+      <button
+        @click="completeTransaction()"
+        :disabled="insertedCoinsTotal < modePrice"
+        class="start-btn"
+      >
         <span>Start Washing</span>
       </button>
     </div>
